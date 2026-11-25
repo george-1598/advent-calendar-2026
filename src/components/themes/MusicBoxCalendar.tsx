@@ -5,6 +5,7 @@ import { playMusicNote, playRatchet } from '../../lib/sound';
 import { TOTAL_DAYS } from '../../lib/time';
 import type { CalendarController } from '../calendar/controller';
 import SoundToggle from '../SoundToggle';
+import LockAllButton from '../LockAllButton';
 
 // Jingle Bells (public domain), one octave up for that tinkly music-box sound: [midi, beats]
 const E = 76, G = 79, C = 72, D = 74, F = 77;
@@ -254,6 +255,8 @@ export default function MusicBoxCalendar({ ctrl }: { ctrl: CalendarController })
         Wind it up for me
       </button>
       <p className="orn-hint">Drag in circles on the golden key · tap an open drawer</p>
+      {/* The last theme in the chain: offer to start the theme hunt over. */}
+      <LockAllButton />
     </div>
   );
 }

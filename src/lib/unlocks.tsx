@@ -41,6 +41,8 @@ interface UnlocksState {
   justUnlocked: ThemeId | null;
   dismiss: () => void;
   unlockAll: () => Promise<void>;
+  /** Re-lock every theme except Classic, so the chain starts over. */
+  lockAll: () => Promise<void>;
 }
 
 const UnlocksContext = createContext<UnlocksState | null>(null);
@@ -134,9 +136,23 @@ export function UnlocksProvider({ children }: { children: ReactNode }) {
     }
   }, [persist]);
 
+  const lockAll = useCallback(async () => {
+    setUnlocked(new Set(['classic']));
+    setJustUnlocked(null);
+    if (userId) {
+      await supabase.rpc('reset_theme_unlocks');
+    } else {
+      try {
+        localStorage.removeItem(GUEST_KEY);
+      } catch {
+        // ignore
+      }
+    }
+  }, [userId]);
+
   return (
     <UnlocksContext.Provider
-      value={{ isUnlocked, keyActive, clue, found, justUnlocked, dismiss: () => setJustUnlocked(null), unlockAll }}
+      value={{ isUnlocked, keyActive, clue, found, justUnlocked, dismiss: () => setJustUnlocked(null), unlockAll, lockAll }}
     >
       {children}
     </UnlocksContext.Provider>

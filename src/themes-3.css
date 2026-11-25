@@ -832,3 +832,17 @@
   0%, 100% { transform: rotate(-9deg); }
   50% { transform: rotate(9deg); }
 }
+
+.lock-all {
+  display: block;
+  margin: 26px auto 0;
+  padding: 10px 20px;
+  border: 1.5px dashed var(--line);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+.lock-all:hover { color: var(--accent); border-color: var(--accent); }
+.lock-confirm { box-shadow: 0 0 0 2px #c8102e, 0 30px 60px rgba(0, 0, 0, 0.5); }
+.lock-confirm .unlock-go:disabled { opacity: 0.6; cursor: wait; }
