@@ -3,7 +3,7 @@ import { useNow } from '../../lib/useNow';
 import { formatCountdown, isToday, isUnlocked, unlockAt } from '../../lib/time';
 import { useAuth } from '../../lib/auth';
 import { useProgress } from '../../lib/progress';
-import DayModal from '../DayModal';
+import { openDayPage } from '../../lib/route';
 
 export interface DayState {
   day: number;
@@ -24,7 +24,6 @@ export function useCalendarController() {
   const { byDay } = useProgress();
   const isAdmin = Boolean(profile?.is_admin);
 
-  const [openDay, setOpenDay] = useState<{ day: number; color: string } | null>(null);
   const [shakingDay, setShakingDay] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -54,15 +53,14 @@ export function useCalendarController() {
   /** Show a short message in the toast. */
   const notify = useCallback((message: string) => setToast(message), []);
 
-  const open = useCallback((day: number, color: string) => setOpenDay({ day, color }), []);
-  const close = useCallback(() => setOpenDay(null), []);
+  // Days open on their own page (#/day/N); the colour tints its header.
+  const open = useCallback((day: number, color: string) => openDayPage(day, color), []);
 
   const overlays = (
     <>
       <div className={toast ? 'toast toast--show' : 'toast'} role="status" aria-live="polite">
         {toast}
       </div>
-      {openDay && <DayModal day={openDay.day} color={openDay.color} onClose={close} />}
     </>
   );
 
@@ -74,7 +72,7 @@ export function useCalendarController() {
     open,
     shakingDay,
     /** Day whose modal is currently open, or null. */
-    openDay: openDay?.day ?? null,
+    openDay: null as number | null,
     overlays,
   };
 }

@@ -1,4 +1,6 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+import DayPage from './components/DayPage';
+import { goHome, savedScroll, useRoute } from './lib/route';
 import ThemePicker from './components/ThemePicker';
 import UnlockCelebration from './components/UnlockCelebration';
 import Calendar from './components/Calendar';
@@ -24,9 +26,18 @@ export default function App() {
   const session = auth.session ?? (devPreview ? ({} as NonNullable<typeof auth.session>) : null);
   const [view, setView] = useState<View>('calendar');
   const [pickerOpen, setPickerOpen] = useState(false);
+  const route = useRoute();
+
+  // Coming back from a day page: restore where the calendar was scrolled to.
+  useEffect(() => {
+    if (route.name !== 'home') return;
+    const y = savedScroll();
+    if (y !== null) requestAnimationFrame(() => window.scrollTo(0, y));
+  }, [route]);
   const closePicker = useCallback(() => setPickerOpen(false), []);
 
   const navigate = (next: View) => {
+    if (route.name === 'day') goHome();
     setView(next);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -39,7 +50,7 @@ export default function App() {
             {NAV.map((item) => (
               <button
                 key={item.id}
-                aria-current={view === item.id ? 'page' : undefined}
+                aria-current={view === item.id && route.name === 'home' ? 'page' : undefined}
                 onClick={() => navigate(item.id)}
               >
                 {item.label}
@@ -59,9 +70,13 @@ export default function App() {
           <LoginView />
         ) : (
           <>
-            {view === 'calendar' && <Calendar onNavigate={navigate} />}
-            {view === 'badges' && <BadgesView />}
-            {view === 'about' && <AboutView />}
+            {route.name === 'day' ? (
+              <DayPage day={route.day} />
+            ) : (
+              view === 'calendar' && <Calendar onNavigate={navigate} />
+            )}
+            {route.name === 'home' && view === 'badges' && <BadgesView />}
+            {route.name === 'home' && view === 'about' && <AboutView />}
           </>
         )}
       </main>
