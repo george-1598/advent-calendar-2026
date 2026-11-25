@@ -388,8 +388,8 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
       </button>
       <p className="orn-hint">
         {tilt === 'on'
-          ? 'Tilt your phone back to float them up, and sideways to steer'
-          : 'Drag up, down or sideways on the tree (or use arrow keys) to tilt it'}
+          ? 'Tilt back to float them up, sideways to steer — the star pulls them in'
+          : 'Drag up, down or sideways (or use arrow keys) to tilt — the star pulls ornaments in'}
       </p>
     </div>
   );

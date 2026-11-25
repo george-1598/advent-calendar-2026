@@ -43,9 +43,11 @@ export function geometry(w: number, h: number): Geometry {
   const cx = w / 2;
   const tiers = (
     [
-      [0.1, 0.33, 0.19],
-      [0.23, 0.5, 0.28],
-      [0.38, 0.68, 0.38],
+      // The tree sits in the lower part of the scene, leaving open sky above
+      // it to steer ornaments up to the star.
+      [0.36, 0.54, 0.17],
+      [0.46, 0.69, 0.26],
+      [0.58, 0.86, 0.36],
     ] as const
   ).map(([top, bottom, half]): Tri => [
     { x: cx, y: top * h },
@@ -60,7 +62,8 @@ export function geometry(w: number, h: number): Geometry {
     // rest along it — and the ones in the middle settle around the star.
     world: { minX: -w * 0.7, maxX: w * 1.7, minY: 0, maxY: h },
     tiers,
-    zone: { x: cx, y: Math.min(tiers[0][0].y - 8, Math.min(w, h) * 0.16 * 0.85), r: Math.min(w, h) * 0.16 },
+    // Glowing circle around the star, mostly above the tree's tip.
+    zone: { x: cx, y: tiers[0][0].y - Math.min(w, h) * 0.16 * 0.5, r: Math.min(w, h) * 0.16 },
   };
 }
 
@@ -223,6 +226,18 @@ export function step(bodies: Body[], geo: Geometry, g: Vec, dt: number, events: 
   const { zone } = geo;
   for (const b of bodies) {
     if (b.held) continue;
+    // The star gently pulls in ornaments that drift close, so they settle
+    // around it in mid-air; a strong tilt can still pull them away.
+    const dx = zone.x - b.x;
+    const dy = zone.y - b.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist < zone.r * 1.15) {
+      b.vx += dx * 7 * dt;
+      b.vy += dy * 7 * dt;
+      const k = Math.exp(-3 * dt);
+      b.vx *= k;
+      b.vy *= k;
+    }
     const inZone = Math.hypot(b.x - zone.x, b.y - zone.y) < zone.r - b.r * 0.15;
     if (inZone !== b.inZone) {
       b.inZone = inZone;

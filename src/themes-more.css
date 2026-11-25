@@ -831,8 +831,8 @@
 .orn-zone.is-active { border-style: solid; border-color: rgba(255, 224, 138, 0.85); background: radial-gradient(circle, rgba(255, 224, 138, 0.3), transparent 72%); }
 .orn-zone span {
   position: absolute;
-  top: 100%;
-  margin-top: 4px;
+  bottom: 100%;
+  margin-bottom: 4px;
   white-space: nowrap;
   font-size: 10px;
   font-weight: 600;
