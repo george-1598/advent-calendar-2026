@@ -52,14 +52,10 @@ export default function DayPage({ day }: { day: number }) {
     setFeedback(null);
     if (!canOpen) return;
     let cancelled = false;
-    supabase
-      .from('quests')
-      .select('day, title, kind, content')
-      .eq('day', day)
-      .maybeSingle()
-      .then(({ data }) => {
-        if (!cancelled) setQuest(data as Quest | null);
-      });
+    // The server returns this player's own version of the quest (or the default).
+    supabase.rpc('get_quest', { p_day: day }).then(({ data }) => {
+      if (!cancelled) setQuest((data as Quest | null) ?? null);
+    });
     return () => {
       cancelled = true;
     };

@@ -810,3 +810,22 @@ h1, h2, p { margin: 0; }
 .admin-save:disabled { opacity: 0.6; }
 .admin-danger { padding: 6px 12px; border-radius: 8px; background: #d2443a; color: #fff; font-weight: 600; }
 .admin-confirm { font-size: 13px; color: #8a4a00; }
+.admin-targets { display: grid; gap: 6px; padding-top: 12px; }
+.admin-targets-label { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6f6a64; }
+.admin-target-chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; }
+.admin-chip {
+  flex: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1.5px solid #e2d9ca;
+  background: #fff;
+  color: #6f6a64;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.admin-chip.has-custom { border-color: var(--coral); color: #b3261e; }
+.admin-chip[aria-selected='true'] { background: var(--teal); border-color: var(--teal); color: #fff; }
+.admin-note { background: #eef6f4; color: #2c5f55; padding: 10px 12px; border-radius: 10px; font-size: 14px; line-height: 1.45; }
+.admin-status--custom { background: #ffe9d6; color: #a35400; }
+.admin-quest.is-custom .admin-quest-day { background: #ffd9a8; color: #8a4a00; }
