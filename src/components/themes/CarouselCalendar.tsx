@@ -191,7 +191,7 @@ export default function CarouselCalendar({ ctrl }: { ctrl: CalendarController })
               })}
             </div>
           </div>
-          <Dome angle={angle} clue={keyActive('carousel') ? KEY_DAYS.carousel! : null} />
+          <Dome angle={angle} clue={`${KEY_DAYS.carousel}${keyActive('carousel') ? '' : '✓'}`} />
         </div>
       </div>
 

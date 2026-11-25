@@ -307,7 +307,7 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
         onKeyDown={(e) => onKey(e, true)}
         onKeyUp={(e) => onKey(e, false)}
       >
-        {geo && <TreeArt geo={geo} clue={keyActive('ornaments') ? KEY_DAYS.ornaments! : null} />}
+        {geo && <TreeArt geo={geo} clue={`${KEY_DAYS.ornaments}${keyActive('ornaments') ? '' : '✓'}`} />}
         {geo && (
           <div
             className={zoneCount > 0 ? 'orn-zone is-active' : 'orn-zone'}
@@ -395,7 +395,7 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
   );
 }
 
-function TreeArt({ geo, clue }: { geo: Geometry; clue: number | null }) {
+function TreeArt({ geo, clue }: { geo: Geometry; clue: string | null }) {
   const [t1, , t3] = geo.tiers;
   const trunkW = (t1[2].x - t1[1].x) * 0.22;
   const lights = geo.tiers.flatMap((tri, ti) =>

@@ -4,7 +4,7 @@ import { playChime, playLightOff, playLightOn, soundEnabled, startWinterAmbience
 import type { CalendarController } from '../calendar/controller';
 import { formatCountdown, unlockAt } from '../../lib/time';
 import SoundToggle from '../SoundToggle';
-import { KEY_DAYS, useUnlocks } from '../../lib/unlocks';
+import { useUnlocks } from '../../lib/unlocks';
 import { RoomItem } from './village/Interior';
 import { GROUND, HOUSES, SNOW, STARS, VIEW_H, VIEW_W, WINDOW_COUNT, type HouseSpec, type WindowSpec } from './village/scene';
 
@@ -19,7 +19,7 @@ export default function VillageCalendar({ ctrl }: { ctrl: CalendarController }) 
   const lit = useExplored('village');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [peek, setPeek] = useState<WindowSpec | null>(null);
-  const { found, keyActive } = useUnlocks();
+  const { found, clue } = useUnlocks();
   const [wave, setWave] = useState(false);
   const ambience = useRef<(() => void) | null>(null);
 
@@ -131,11 +131,9 @@ export default function VillageCalendar({ ctrl }: { ctrl: CalendarController }) 
           ))}
           <circle cx="990" cy="120" r="110" fill="url(#v-moon-glow)" />
           <circle cx="990" cy="120" r="44" fill="#FFF3C4" />
-          {keyActive('village') && (
-            <text x="990" y="128" textAnchor="middle" className="key-moon">
-              🗝 {KEY_DAYS.village}
-            </text>
-          )}
+          <text x="990" y="128" textAnchor="middle" className="key-moon">
+            {clue('village')}
+          </text>
           <circle cx="1004" cy="110" r="9" fill="#F1E1A6" opacity="0.6" />
           <circle cx="978" cy="136" r="6" fill="#F1E1A6" opacity="0.5" />
 

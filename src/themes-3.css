@@ -771,7 +771,7 @@
   position: relative;
   flex: none;
   align-self: flex-start;
-  width: 50px;
+  min-width: 50px;
   height: 58px;
   margin-top: -12px;
   padding: 0;
@@ -788,14 +788,13 @@
   background: #b0864f;
 }
 .key-tag-card {
-  position: absolute;
-  left: 0;
-  right: 0;
+  position: relative;
   top: 14px;
   height: 40px;
   display: grid;
   place-items: center;
-  padding-top: 6px;
+  padding: 6px 9px 0;
+  white-space: nowrap;
   font-family: 'Caveat', cursive;
   font-weight: 700;
   font-size: 21px;

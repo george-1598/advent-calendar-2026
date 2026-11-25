@@ -11,7 +11,7 @@ const UNWRAP_MS = 950;
 export default function PresentsCalendar({ ctrl }: { ctrl: CalendarController }) {
   const [unwrapping, setUnwrapping] = useState<number | null>(null);
   const modalWasOpened = useRef(false);
-  const { found, keyActive } = useUnlocks();
+  const { found, keyActive, clue } = useUnlocks();
   const timer = useRef<number>();
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -46,15 +46,19 @@ export default function PresentsCalendar({ ctrl }: { ctrl: CalendarController })
     <div className="presents-wrap">
       <div className="scratch-head">
         <p className="theme-lead presents-lead">Unwrap one present a day</p>
-        {keyActive('presents') && (
-          <button
-            className="key-tag"
-            aria-label={`Key clue: find present ${KEY_DAYS.presents} to unlock a new theme`}
-            onClick={() => ctrl.notify(`Find present ${KEY_DAYS.presents} among the gifts to unlock a new theme ✨`)}
-          >
-            <span className="key-tag-card">🗝 {KEY_DAYS.presents}</span>
-          </button>
-        )}
+        <button
+          className="key-tag"
+          aria-label={`Key clue: present ${KEY_DAYS.presents}`}
+          onClick={() =>
+            ctrl.notify(
+              keyActive('presents')
+                ? `Find present ${KEY_DAYS.presents} among the gifts to unlock a new theme ✨`
+                : 'You already found this key ✓',
+            )
+          }
+        >
+          <span className="key-tag-card">{clue('presents')}</span>
+        </button>
         <SoundToggle />
       </div>
       <div className="presents">

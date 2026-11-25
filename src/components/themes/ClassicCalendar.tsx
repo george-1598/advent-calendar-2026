@@ -17,7 +17,7 @@ interface Props {
 export default function ClassicCalendar({ ctrl, onNavigate }: Props) {
   const { profile } = useAuth();
   const { solvedCount } = useProgress();
-  const { found, keyActive } = useUnlocks();
+  const { found, keyActive, clue } = useUnlocks();
 
   // The tile's colour depends on the breakpoint, so read what's actually shown.
   const openTile = (day: number, e: MouseEvent<HTMLButtonElement>) =>
@@ -28,7 +28,7 @@ export default function ClassicCalendar({ ctrl, onNavigate }: Props) {
     '25 days · 25 quests · 25 surprises',
     'Swipe, solve, unlock a real gift',
     // The hidden key lives on the last slide.
-    ...(keyActive('classic') ? [`Psst… 🗝 ${KEY_DAYS.classic} opens a new theme`] : []),
+    keyActive('classic') ? `Psst… 🗝 ${KEY_DAYS.classic} opens a new theme` : `${clue('classic')} — key found`,
   ];
 
   return (

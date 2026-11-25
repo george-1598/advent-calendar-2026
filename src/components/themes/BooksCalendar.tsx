@@ -14,7 +14,7 @@ import { StarIcon } from '../icons';
 export default function BooksCalendar({ ctrl }: { ctrl: CalendarController }) {
   const [reading, setReading] = useState<{ book: BookSpec; from: DOMRect; keyNote: string | null } | null>(null);
   const [showNumbers, setShowNumbers] = useState(false);
-  const { found, keyActive } = useUnlocks();
+  const { found, keyActive, clue } = useUnlocks();
 
   const openBook = (book: BookSpec, el: HTMLElement) => {
     const result = book.day ? found('books', book.day, showNumbers) : 'none';
@@ -23,7 +23,10 @@ export default function BooksCalendar({ ctrl }: { ctrl: CalendarController }) {
     let keyNote: string | null = null;
     if (result === 'unlocked') keyNote = '🔓 You found the key!';
     else if (result === 'blocked') keyNote = '🗝 This is the key book! Hide the numbers, then pick it again to unlock the next theme.';
-    else if (book.id === BOOKMARK_BOOK && keyActive('books')) keyNote = `🗝 Psst — the key is book ${KEY_DAYS.books}. Find it on the shelf!`;
+    else if (book.id === BOOKMARK_BOOK)
+      keyNote = keyActive('books')
+        ? `🗝 Psst — the key is book ${KEY_DAYS.books}. Find it on the shelf!`
+        : `🗝 You already found this key (book ${KEY_DAYS.books}) ✓`;
     playBookSlide();
     setReading({ book, from: el.getBoundingClientRect(), keyNote });
   };
@@ -82,7 +85,7 @@ export default function BooksCalendar({ ctrl }: { ctrl: CalendarController }) {
         )}
         {book.day && <span className="book-num">{book.day}</span>}
         {solved && <StarIcon className="book-ribbon" />}
-        {book.id === BOOKMARK_BOOK && keyActive('books') && <span className="book-bookmark">🗝 {KEY_DAYS.books}</span>}
+        {book.id === BOOKMARK_BOOK && <span className="book-bookmark">{clue('books')}</span>}
       </button>
     );
   };

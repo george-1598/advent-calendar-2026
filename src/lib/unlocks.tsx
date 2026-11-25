@@ -31,6 +31,8 @@ interface UnlocksState {
   isUnlocked: (t: ThemeId) => boolean;
   /** Whether a theme's key still has something to unlock (so its clue should show). */
   keyActive: (t: ThemeId) => boolean;
+  /** Clue text for a theme's key, e.g. "🗝 14", or "🗝 14 ✓" once it has been used. */
+  clue: (t: ThemeId) => string;
   /**
    * Report that the user found `day` in `theme`. If it's the key day (and no
    * helper is giving things away), the next theme unlocks.
@@ -104,6 +106,11 @@ export function UnlocksProvider({ children }: { children: ReactNode }) {
     [unlocked],
   );
 
+  const clue = useCallback(
+    (t: ThemeId) => `🗝 ${KEY_DAYS[t] ?? ''}${KEY_DAYS[t] !== undefined && !keyActive(t) ? ' ✓' : ''}`,
+    [keyActive],
+  );
+
   const found = useCallback(
     (theme: ThemeId, day: number, helperOn = false): FoundResult => {
       if (KEY_DAYS[theme] !== day || !keyActive(theme)) return 'none';
@@ -129,7 +136,7 @@ export function UnlocksProvider({ children }: { children: ReactNode }) {
 
   return (
     <UnlocksContext.Provider
-      value={{ isUnlocked, keyActive, found, justUnlocked, dismiss: () => setJustUnlocked(null), unlockAll }}
+      value={{ isUnlocked, keyActive, clue, found, justUnlocked, dismiss: () => setJustUnlocked(null), unlockAll }}
     >
       {children}
     </UnlocksContext.Provider>
@@ -144,11 +151,11 @@ export function useUnlocks(): UnlocksState {
 
 /** The faint "🗝 N" clue each theme hides somewhere in its art. */
 export function KeyClue({ theme, className = '' }: { theme: ThemeId; className?: string }) {
-  const { keyActive } = useUnlocks();
-  if (!keyActive(theme)) return null;
+  const { clue } = useUnlocks();
+  if (KEY_DAYS[theme] === undefined) return null;
   return (
     <span className={`key-clue ${className}`} aria-hidden="true">
-      🗝 {KEY_DAYS[theme]}
+      {clue(theme)}
     </span>
   );
 }
