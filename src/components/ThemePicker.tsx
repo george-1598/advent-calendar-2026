@@ -57,6 +57,42 @@ function Preview({ id }: { id: ThemeId }) {
       </span>
     );
   }
+  if (id === 'mailroom') {
+    return (
+      <span className="tp tp--mail">
+        {[
+          { l: 8, t: 10, r: -8, c: '#F3EAD7' },
+          { l: 40, t: 22, r: 6, c: '#D9C09A' },
+          { l: 18, t: 38, r: 12, c: '#DFE9F1' },
+          { l: 50, t: 44, r: -5, c: '#F3EAD7' },
+        ].map((e, i) => (
+          <span key={i} className="tp-env" style={{ left: e.l, top: e.t, rotate: `${e.r}deg`, background: e.c }} />
+        ))}
+        <span className="tp-seal" />
+      </span>
+    );
+  }
+  if (id === 'crackers') {
+    return (
+      <span className="tp tp--crackers">
+        {['#C8102E', '#1E7A46', '#D4A017'].map((c, i) => (
+          <span key={i} className="tp-cracker" style={{ ['--c' as string]: c, top: 10 + i * 20 }} />
+        ))}
+      </span>
+    );
+  }
+  if (id === 'musicbox') {
+    return (
+      <span className="tp tp--musicbox">
+        <span className="tp-mbox">
+          {Array.from({ length: 9 }, (_, i) => (
+            <span key={i} className={i === 4 ? 'tp-drawer2 is-out' : 'tp-drawer2'} />
+          ))}
+        </span>
+        <span className="tp-key" />
+      </span>
+    );
+  }
   if (id === 'ornaments') {
     return (
       <span className="tp tp--ornaments">

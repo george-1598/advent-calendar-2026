@@ -9,6 +9,9 @@ import BooksCalendar from './themes/BooksCalendar';
 import ScratchCalendar from './themes/ScratchCalendar';
 import VillageCalendar from './themes/VillageCalendar';
 import OrnamentsCalendar from './themes/OrnamentsCalendar';
+import MailroomCalendar from './themes/MailroomCalendar';
+import CrackersCalendar from './themes/CrackersCalendar';
+import MusicBoxCalendar from './themes/MusicBoxCalendar';
 
 export default function Calendar({ onNavigate }: { onNavigate: (view: View) => void }) {
   const { theme } = useTheme();
@@ -24,6 +27,9 @@ export default function Calendar({ onNavigate }: { onNavigate: (view: View) => v
       {theme === 'scratch' && <ScratchCalendar ctrl={ctrl} />}
       {theme === 'village' && <VillageCalendar ctrl={ctrl} />}
       {theme === 'ornaments' && <OrnamentsCalendar ctrl={ctrl} />}
+      {theme === 'mailroom' && <MailroomCalendar ctrl={ctrl} />}
+      {theme === 'crackers' && <CrackersCalendar ctrl={ctrl} />}
+      {theme === 'musicbox' && <MusicBoxCalendar ctrl={ctrl} />}
       {ctrl.overlays}
     </>
   );

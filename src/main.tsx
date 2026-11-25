@@ -7,6 +7,7 @@ import { ThemeProvider } from './lib/theme';
 import './styles.css';
 import './themes.css';
 import './themes-more.css';
+import './themes-3.css';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

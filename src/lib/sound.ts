@@ -268,3 +268,49 @@ export function playWrap() {
     noiseBurst(c, { at: 0.1 + Math.random() * 0.3, duration: 0.05, type: 'highpass', from: 3500, to: 2800, volume: 0.04, attack: 0.003 });
   }
 }
+
+/** Paper strip being torn off an envelope. */
+export function playTear() {
+  const c = audio();
+  if (!c) return;
+  noiseBurst(c, { duration: 0.32, type: 'bandpass', from: 1100, to: 4200, q: 2, volume: 0.24, attack: 0.02 });
+  for (let i = 0; i < 5; i++) {
+    noiseBurst(c, { at: Math.random() * 0.3, duration: 0.03, type: 'highpass', from: 4000, to: 3000, volume: 0.08, attack: 0.002 });
+  }
+}
+
+/** A sheet of paper sliding out of an envelope. */
+export function playPaperSlide() {
+  const c = audio();
+  if (!c) return;
+  noiseBurst(c, { duration: 0.35, type: 'lowpass', from: 2600, to: 900, q: 0.7, volume: 0.1, attack: 0.08 });
+}
+
+/** The cracker BANG: a sharp crack with a little body. */
+export function playSnap() {
+  const c = audio();
+  if (!c) return;
+  noiseBurst(c, { duration: 0.16, type: 'highpass', from: 1800, to: 900, volume: 0.5, attack: 0.002 });
+  noiseBurst(c, { duration: 0.25, type: 'lowpass', from: 900, to: 200, volume: 0.35, attack: 0.002 });
+  tone(c, 140, c.currentTime, 0.12, 0.18, 'square');
+}
+
+/** Ratchet click of a winding key. */
+export function playRatchet() {
+  const c = audio();
+  if (!c) return;
+  tone(c, 2600, c.currentTime, 0.025, 0.05, 'square');
+  tone(c, 900, c.currentTime, 0.03, 0.04, 'triangle');
+}
+
+/** One music-box tine: a bright sine with metallic overtones and a long ring. */
+export function playMusicNote(midi: number, volume = 0.11) {
+  const c = audio();
+  if (!c) return;
+  const f = 440 * Math.pow(2, (midi - 69) / 12) * (1 + (Math.random() - 0.5) * 0.002);
+  const t = c.currentTime;
+  tone(c, f, t, 1.6, volume);
+  tone(c, f * 2, t, 0.7, volume * 0.22);
+  tone(c, f * 3.01, t, 0.25, volume * 0.1);
+  tone(c, f * 5.4, t, 0.06, volume * 0.06);
+}

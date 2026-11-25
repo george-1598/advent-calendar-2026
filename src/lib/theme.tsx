@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
-export type ThemeId = 'classic' | 'presents' | 'carousel' | 'books' | 'scratch' | 'village' | 'ornaments';
+export type ThemeId = 'classic' | 'presents' | 'carousel' | 'books' | 'scratch' | 'village' | 'ornaments' | 'mailroom' | 'crackers' | 'musicbox';
 
 export const THEMES: { id: ThemeId; name: string; description: string; headerColor: string }[] = [
   {
@@ -44,6 +44,24 @@ export const THEMES: { id: ThemeId; name: string; description: string; headerCol
     name: 'Tree ornaments',
     description: 'Tilt your phone to roll the ornaments into view',
     headerColor: '#121733',
+  },
+  {
+    id: 'mailroom',
+    name: 'Santa’s mailroom',
+    description: 'Dig through the letters and tear one open',
+    headerColor: '#24170F',
+  },
+  {
+    id: 'crackers',
+    name: 'Christmas crackers',
+    description: 'Pull a cracker — bang! — to see what’s inside',
+    headerColor: '#151A2E',
+  },
+  {
+    id: 'musicbox',
+    name: 'Music box',
+    description: 'Wind the key and the drawers pop open',
+    headerColor: '#1D1424',
   },
 ];
 
