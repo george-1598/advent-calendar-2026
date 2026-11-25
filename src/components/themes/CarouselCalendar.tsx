@@ -3,6 +3,7 @@ import { isUnlocked, TOTAL_DAYS } from '../../lib/time';
 import { ariaStatus, type CalendarController } from '../calendar/controller';
 import { LockIcon, StarIcon } from '../icons';
 import Dome from './carousel/Dome';
+import { KEY_DAYS, useUnlocks } from '../../lib/unlocks';
 
 /** 13 columns × 2 rows = 25 drawers + the logo panel. [top, bottom] per column. */
 const COLUMNS: ReadonlyArray<readonly [number | 'logo', number]> = [
@@ -35,6 +36,7 @@ export default function CarouselCalendar({ ctrl }: { ctrl: CalendarController })
   angleRef.current = angle;
   const [dragging, setDragging] = useState(false);
   const [pulled, setPulled] = useState<number | null>(null);
+  const { found, keyActive } = useUnlocks();
   const modalWasOpened = useRef(false);
   const suppressClick = useRef(false);
   const timers = useRef<number[]>([]);
@@ -69,6 +71,7 @@ export default function CarouselCalendar({ ctrl }: { ctrl: CalendarController })
     const col = columnOf(day);
     const row = COLUMNS[col].indexOf(day);
     const act = () => {
+      if (found('carousel', day) === 'unlocked') return;
       const s = ctrl.stateOf(day);
       if (!s.canOpen) return ctrl.rejectLocked(day);
       setPulled(day);
@@ -188,7 +191,7 @@ export default function CarouselCalendar({ ctrl }: { ctrl: CalendarController })
               })}
             </div>
           </div>
-          <Dome angle={angle} />
+          <Dome angle={angle} clue={keyActive('carousel') ? KEY_DAYS.carousel! : null} />
         </div>
       </div>
 

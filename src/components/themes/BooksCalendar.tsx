@@ -4,14 +4,20 @@ import type { CalendarController } from '../calendar/controller';
 import SoundToggle from '../SoundToggle';
 import BookReader from './books/BookReader';
 import { MotifArt } from './books/art';
-import { SHELF, type BookSpec } from './books/data';
+import { BOOKS, SHELF, type BookSpec } from './books/data';
+import { BLOCKED_MESSAGE, KEY_DAYS, useUnlocks } from '../../lib/unlocks';
+
+// The key hides on a red bookmark peeking out of the first upright decoy book.
+const BOOKMARK_BOOK = BOOKS.find((b) => !b.day && b.orientation === 'upright')?.id;
 import { StarIcon } from '../icons';
 
 export default function BooksCalendar({ ctrl }: { ctrl: CalendarController }) {
   const [reading, setReading] = useState<{ book: BookSpec; from: DOMRect } | null>(null);
   const [showNumbers, setShowNumbers] = useState(false);
+  const { found, keyActive } = useUnlocks();
 
   const openBook = (book: BookSpec, el: HTMLElement) => {
+    if (book.day && found('books', book.day, showNumbers) === 'blocked') ctrl.notify(BLOCKED_MESSAGE);
     playBookSlide();
     setReading({ book, from: el.getBoundingClientRect() });
   };
@@ -70,6 +76,7 @@ export default function BooksCalendar({ ctrl }: { ctrl: CalendarController }) {
         )}
         {book.day && <span className="book-num">{book.day}</span>}
         {solved && <StarIcon className="book-ribbon" />}
+        {book.id === BOOKMARK_BOOK && keyActive('books') && <span className="book-bookmark">🗝 {KEY_DAYS.books}</span>}
       </button>
     );
   };

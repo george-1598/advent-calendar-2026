@@ -6,6 +6,7 @@ import { useAuth } from '../../lib/auth';
 import { useProgress } from '../../lib/progress';
 import { ariaStatus, type CalendarController } from '../calendar/controller';
 import IntroSlider from '../IntroSlider';
+import { KEY_DAYS, useUnlocks } from '../../lib/unlocks';
 import { LockIcon, StarIcon } from '../icons';
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 export default function ClassicCalendar({ ctrl, onNavigate }: Props) {
   const { profile } = useAuth();
   const { solvedCount } = useProgress();
+  const { found, keyActive } = useUnlocks();
 
   // The tile's colour depends on the breakpoint, so read what's actually shown.
   const openTile = (day: number, e: MouseEvent<HTMLButtonElement>) =>
@@ -25,6 +27,8 @@ export default function ClassicCalendar({ ctrl, onNavigate }: Props) {
     profile ? `Hi ${profile.display_name}! Merry Christmas` : 'A Christmas advent calendar made with love',
     '25 days · 25 quests · 25 surprises',
     'Swipe, solve, unlock a real gift',
+    // The hidden key lives on the last slide.
+    ...(keyActive('classic') ? [`Psst… 🗝 ${KEY_DAYS.classic} opens a new theme`] : []),
   ];
 
   return (
@@ -89,7 +93,11 @@ export default function ClassicCalendar({ ctrl, onNavigate }: Props) {
                   className={classes}
                   style={dayColorStyle(item.day)}
                   aria-label={`December ${item.day}${ariaStatus(s)}`}
-                  onClick={(e) => (s.canOpen ? openTile(item.day, e) : ctrl.rejectLocked(item.day))}
+                  onClick={(e) => {
+                    if (found('classic', item.day) === 'unlocked') return;
+                    if (s.canOpen) openTile(item.day, e);
+                    else ctrl.rejectLocked(item.day);
+                  }}
                 >
                   <span className="day-number">{item.day}</span>
                   {!s.unlocked && <LockIcon className="day-lock" />}

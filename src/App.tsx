@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import ThemePicker from './components/ThemePicker';
+import UnlockCelebration from './components/UnlockCelebration';
 import Calendar from './components/Calendar';
 import BadgesView from './components/BadgesView';
 import AboutView from './components/AboutView';
@@ -83,6 +84,7 @@ export default function App() {
       </footer>
 
       {pickerOpen && <ThemePicker onClose={closePicker} />}
+      <UnlockCelebration />
     </>
   );
 }

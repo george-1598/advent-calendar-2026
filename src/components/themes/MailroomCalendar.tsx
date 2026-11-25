@@ -3,6 +3,7 @@ import { useAuth } from '../../lib/auth';
 import { playPaperSlide } from '../../lib/sound';
 import type { CalendarController } from '../calendar/controller';
 import SoundToggle from '../SoundToggle';
+import { BLOCKED_MESSAGE, KEY_DAYS, useUnlocks } from '../../lib/unlocks';
 import { MailFace } from './mailroom/Envelope';
 import LetterReader from './mailroom/LetterReader';
 import { MAIL, type Mail } from './mailroom/data';
@@ -32,6 +33,7 @@ export default function MailroomCalendar({ ctrl }: { ctrl: CalendarController })
     Object.fromEntries(MAIL.map((m, i) => [m.id, { x: m.x, y: m.y, z: i }])),
   );
   const [sorted, setSorted] = useState(false);
+  const { found, keyActive } = useUnlocks();
   const [dragging, setDragging] = useState<string | null>(null);
   const [reading, setReading] = useState<Mail | null>(null);
   const zTop = useRef(MAIL.length + 200);
@@ -71,6 +73,7 @@ export default function MailroomCalendar({ ctrl }: { ctrl: CalendarController })
       return;
     }
     setPositions((p) => ({ ...p, [m.id]: { ...p[m.id], z: ++zTop.current } }));
+    if (m.day && found('mailroom', m.day, sorted) === 'blocked') ctrl.notify(BLOCKED_MESSAGE);
     setReading(m);
   };
 
@@ -92,7 +95,9 @@ export default function MailroomCalendar({ ctrl }: { ctrl: CalendarController })
       </div>
       <div ref={deskRef} className={sorted ? 'desk is-sorted' : 'desk'}>
         <span className="desk-sprig" aria-hidden="true" />
-        <span className="desk-ring" aria-hidden="true" />
+        <span className="desk-ring" aria-hidden="true">
+          {keyActive('mailroom') && <span className="key-ring">🗝 {KEY_DAYS.mailroom}</span>}
+        </span>
         {MAIL.map((m) => {
           const p = positions[m.id];
           const s = m.day ? ctrl.stateOf(m.day) : null;

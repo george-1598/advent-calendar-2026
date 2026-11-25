@@ -4,6 +4,7 @@ import { playChime, playSnap } from '../../lib/sound';
 import { formatCountdown, unlockAt } from '../../lib/time';
 import type { CalendarController } from '../calendar/controller';
 import SoundToggle from '../SoundToggle';
+import { KeyClue, useUnlocks } from '../../lib/unlocks';
 import Cracker, { Confetti } from './crackers/Cracker';
 import { CRACKERS, CRACKER_ORDER } from './crackers/data';
 
@@ -22,6 +23,7 @@ export default function CrackersCalendar({ ctrl }: { ctrl: CalendarController })
   const [snapped, setSnapped] = useState<Set<number>>(new Set());
   const [reveal, setReveal] = useState<number | null>(null);
   const [punchline, setPunchline] = useState(false);
+  const { found } = useUnlocks();
 
   useEffect(() => {
     if (reveal === null) return;
@@ -70,7 +72,10 @@ export default function CrackersCalendar({ ctrl }: { ctrl: CalendarController })
               pulled={pulled.has(day) && !snapped.has(day)}
               bursting={snapped.has(day)}
               label={pulled.has(day) ? `Cracker ${day}, pulled` : 'A cracker — drag sideways to pull it'}
-              onSnap={() => snap(day)}
+              onSnap={() => {
+                snap(day);
+                found('crackers', day);
+              }}
               onTapPulled={() => {
                 setPunchline(false);
                 setReveal(day);
@@ -79,6 +84,7 @@ export default function CrackersCalendar({ ctrl }: { ctrl: CalendarController })
           </div>
         ))}
       </div>
+      <KeyClue theme="crackers" className="key-clue--crackers" />
       <button className="theme-help" onClick={pullAll} disabled={CRACKER_ORDER.every((d) => pulled.has(d))}>
         Pull them all at once
       </button>

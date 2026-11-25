@@ -31,7 +31,7 @@ const LIGHTS = [
   [116, 126, '#F6D06B'],
 ] as const;
 
-export default function Dome({ angle }: { angle: number }) {
+export default function Dome({ angle, clue }: { angle: number; clue: number | null }) {
   const shift = Math.sin((angle * Math.PI) / 180) * 7;
 
   return (
@@ -70,6 +70,12 @@ export default function Dome({ angle }: { angle: number }) {
               ))}
             </g>
           ))}
+          {/* the key, painted on the tallest building */}
+          {clue !== null && (
+            <text x="128" y="74" textAnchor="middle" className="key-building">
+              {clue}
+            </text>
+          )}
         </g>
 
         <ellipse cx="100" cy="146" rx="96" ry="14" fill="#F8FBFC" />

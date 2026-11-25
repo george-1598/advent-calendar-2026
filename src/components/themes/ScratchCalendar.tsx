@@ -5,6 +5,7 @@ import { rng, shuffle } from '../../lib/random';
 import { TOTAL_DAYS, formatCountdown, unlockAt } from '../../lib/time';
 import type { CalendarController } from '../calendar/controller';
 import SoundToggle from '../SoundToggle';
+import { KeyClue, useUnlocks } from '../../lib/unlocks';
 import { StarIcon } from '../icons';
 import ScratchCard, { CardFace } from './scratch/ScratchCard';
 import { foilDataUrl } from './scratch/foil';
@@ -17,6 +18,7 @@ export default function ScratchCalendar({ ctrl }: { ctrl: CalendarController }) 
   const revealed = useExplored('scratch');
   const [active, setActive] = useState<number | null>(null);
   const [justRevealed, setJustRevealed] = useState(false);
+  const { found } = useUnlocks();
   const [sweeping, setSweeping] = useState<Set<number> | null>(null);
   const hiddenDays = ORDER.filter((d) => !revealed.has(d));
 
@@ -84,6 +86,7 @@ export default function ScratchCalendar({ ctrl }: { ctrl: CalendarController }) 
           );
         })}
       </div>
+      <KeyClue theme="scratch" className="key-clue--scratch" />
       <button className="theme-help" onClick={scratchAll} disabled={hiddenDays.length === 0}>
         Scratch all the cards at once
       </button>
@@ -100,6 +103,7 @@ export default function ScratchCalendar({ ctrl }: { ctrl: CalendarController }) 
               day={active}
               onRevealed={() => {
                 revealed.add(active);
+                found('scratch', active);
                 setJustRevealed(true);
               }}
             />

@@ -1,5 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { THEMES, useTheme, type ThemeId } from '../lib/theme';
+import { THEME_CHAIN, previousTheme, useUnlocks } from '../lib/unlocks';
+import { useAuth } from '../lib/auth';
 
 function Preview({ id }: { id: ThemeId }) {
   if (id === 'classic') {
@@ -121,6 +123,10 @@ function Preview({ id }: { id: ThemeId }) {
 
 export default function ThemePicker({ onClose }: { onClose: () => void }) {
   const { theme, setTheme } = useTheme();
+  const { isUnlocked, unlockAll } = useUnlocks();
+  const { profile } = useAuth();
+  const nameOf = (id: ThemeId) => THEMES.find((t) => t.id === id)!.name;
+  const unlockedCount = THEMES.filter((t) => isUnlocked(t.id)).length;
   const closeRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -139,25 +145,45 @@ export default function ThemePicker({ onClose }: { onClose: () => void }) {
             ×
           </button>
         </div>
+        <p className="theme-progress">
+          {unlockedCount} of {THEMES.length} themes unlocked · each theme hides a 🗝 key day that unlocks the next
+        </p>
         <div className="theme-options">
-          {THEMES.map((t) => (
-            <button
-              key={t.id}
-              className={t.id === theme ? 'theme-option is-active' : 'theme-option'}
-              aria-pressed={t.id === theme}
-              onClick={() => {
-                setTheme(t.id);
-                onClose();
-              }}
-            >
-              <Preview id={t.id} />
-              <span className="theme-text">
-                <span className="theme-name">{t.name}</span>
-                <span className="theme-desc">{t.description}</span>
-              </span>
-            </button>
-          ))}
+          {/* Listed in unlock order, so each locked card's hint points to the one above it. */}
+          {[...THEMES].sort((a, b) => THEME_CHAIN.indexOf(a.id) - THEME_CHAIN.indexOf(b.id)).map((t) => {
+            const open = isUnlocked(t.id);
+            const prev = previousTheme(t.id);
+            return (
+              <button
+                key={t.id}
+                className={['theme-option', t.id === theme && 'is-active', !open && 'is-locked'].filter(Boolean).join(' ')}
+                aria-pressed={t.id === theme}
+                aria-disabled={!open}
+                onClick={() => {
+                  if (!open) return;
+                  setTheme(t.id);
+                  onClose();
+                }}
+              >
+                <span className="theme-preview-wrap">
+                  <Preview id={t.id} />
+                  {!open && <span className="theme-lock">🔒</span>}
+                </span>
+                <span className="theme-text">
+                  <span className="theme-name">{t.name}</span>
+                  <span className="theme-desc">
+                    {open ? t.description : `Find the 🗝 key in ${prev ? nameOf(prev) : 'the previous theme'}`}
+                  </span>
+                </span>
+              </button>
+            );
+          })}
         </div>
+        {profile?.is_admin && unlockedCount < THEMES.length && (
+          <button className="theme-reset" onClick={() => void unlockAll()}>
+            Unlock all themes (admin)
+          </button>
+        )}
       </div>
     </div>
   );

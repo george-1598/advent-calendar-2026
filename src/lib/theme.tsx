@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useUnlocks } from './unlocks';
 
 export type ThemeId = 'classic' | 'presents' | 'carousel' | 'books' | 'scratch' | 'village' | 'ornaments' | 'mailroom' | 'crackers' | 'musicbox';
 
@@ -69,9 +70,9 @@ const STORAGE_KEY = 'advent-theme';
 const isThemeId = (value: unknown): value is ThemeId => THEMES.some((t) => t.id === value);
 
 function initialTheme(): ThemeId {
-  // ?theme=presents in the URL wins (handy for previews), then the saved choice.
+  // In development ?theme=presents in the URL wins (handy for previews), then the saved choice.
   const fromUrl = new URLSearchParams(window.location.search).get('theme');
-  if (isThemeId(fromUrl)) return fromUrl;
+  if (import.meta.env.DEV && isThemeId(fromUrl)) return fromUrl;
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (isThemeId(stored)) return stored;
@@ -88,19 +89,28 @@ interface ThemeState {
 
 const ThemeContext = createContext<ThemeState>({ theme: 'classic', setTheme: () => {} });
 
+// Local development only: ?theme=… previews any theme, even locked ones.
+const devOverride = import.meta.env.DEV && new URLSearchParams(window.location.search).has('theme');
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
-  const [theme, setTheme] = useState<ThemeId>(initialTheme);
+  const [chosen, setChosen] = useState<ThemeId>(initialTheme);
+  const { isUnlocked } = useUnlocks();
+  // A locked theme (e.g. saved on another device before a reset) falls back to Classic.
+  const theme: ThemeId = devOverride || isUnlocked(chosen) ? chosen : 'classic';
+  const setTheme = (t: ThemeId) => {
+    if (devOverride || isUnlocked(t)) setChosen(t);
+  };
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     const meta = document.querySelector('meta[name="theme-color"]');
     meta?.setAttribute('content', THEMES.find((t) => t.id === theme)!.headerColor);
     try {
-      localStorage.setItem(STORAGE_KEY, theme);
+      localStorage.setItem(STORAGE_KEY, chosen);
     } catch {
       // ignore
     }
-  }, [theme]);
+  }, [theme, chosen]);
 
   return <ThemeContext.Provider value={{ theme, setTheme }}>{children}</ThemeContext.Provider>;
 }

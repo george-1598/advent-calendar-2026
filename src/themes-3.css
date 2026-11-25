@@ -676,3 +676,92 @@
 .mb-gauge { display: flex; align-items: center; justify-content: center; gap: 10px; color: var(--text-muted); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; }
 .mb-gauge-bar { width: 50%; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, 0.1); overflow: hidden; }
 .mb-gauge-bar span { display: block; height: 100%; background: linear-gradient(90deg, #b8902e, #fff1c2); transition: width 0.15s linear; }
+
+/* =================================================================
+   Theme unlocks: hidden key clues, locked picker cards, celebration
+   ================================================================= */
+.key-clue {
+  display: block;
+  width: fit-content;
+  margin: 10px 8px 0 auto;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-muted);
+  opacity: 0.38;
+  rotate: -4deg;
+  user-select: none;
+}
+.key-clue--scratch { margin: 8px auto 0 6px; rotate: 3deg; }
+.key-clue--crackers { margin: 6px 6px 0 auto; }
+.book-bookmark {
+  position: absolute;
+  left: 50%;
+  top: -12px;
+  translate: -50% 0;
+  padding: 4px 2px 8px;
+  width: 15px;
+  font-size: 7px;
+  font-weight: 700;
+  line-height: 1.1;
+  writing-mode: vertical-rl;
+  color: #fbe6a8;
+  background: #a5201b;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);
+  opacity: 0.85;
+  z-index: 2;
+  pointer-events: none;
+}
+.key-moon { font-family: 'Playfair Display', Georgia, serif; font-size: 15px; font-weight: 700; fill: #c9b06a; opacity: 0.55; }
+.key-star { font-family: 'Playfair Display', Georgia, serif; font-size: 8px; font-weight: 700; fill: #8a5a00; }
+.key-building { font-family: 'Playfair Display', Georgia, serif; font-size: 9px; font-weight: 700; fill: #F3C9A0; opacity: 0.8; }
+.key-ring {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: min(4cqw, 18px);
+  color: rgba(60, 30, 10, 0.42);
+  rotate: -12deg;
+}
+
+.theme-progress { font-size: 13px; color: #6f6a64; margin: -6px 0 12px; line-height: 1.4; }
+.theme-preview-wrap { position: relative; flex: none; display: block; }
+.theme-option.is-locked { cursor: not-allowed; background: #f6f3ee; }
+.theme-option.is-locked .tp { filter: blur(2.5px) grayscale(0.6); opacity: 0.6; }
+.theme-option.is-locked .theme-name { color: #8a847c; }
+.theme-option.is-locked:hover { transform: none; }
+.theme-lock { position: absolute; inset: 0; display: grid; place-items: center; font-size: 24px; text-shadow: 0 2px 6px rgba(0, 0, 0, 0.35); }
+
+.unlock-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(10, 8, 20, 0.8);
+  animation: fade-in 0.25s;
+}
+.unlock-card {
+  position: relative;
+  width: min(88vw, 340px);
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 28px 22px 22px;
+  border-radius: 20px;
+  text-align: center;
+  color: #2b2b2b;
+  background: radial-gradient(circle at 50% 0%, #fff6d8, #fffaf0 55%);
+  box-shadow: 0 0 0 2px #e2c27a, 0 30px 60px rgba(0, 0, 0, 0.5);
+  animation: pop-in 0.4s var(--ease-out);
+}
+.unlock-icon { font-size: 46px; animation: crown-bob 2.4s ease-in-out infinite; }
+.unlock-kicker { font-size: 12px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase; color: #b8860b; }
+.unlock-card h2 { font-family: 'Playfair Display', Georgia, serif; font-size: 24px; }
+.unlock-name { font-family: 'Caveat', cursive; font-weight: 700; font-size: 30px; color: #c8102e; }
+.unlock-desc { font-size: 14px; color: #666; line-height: 1.45; }
+.unlock-go { margin-top: 6px; padding: 12px 26px; border-radius: 999px; background: #c8102e; color: #fff; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: 13px; }
+.unlock-later { font-size: 13px; color: #8a7a6a; text-decoration: underline; text-underline-offset: 3px; }

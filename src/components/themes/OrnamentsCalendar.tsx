@@ -4,6 +4,7 @@ import { playChime, playTink } from '../../lib/sound';
 import { TOTAL_DAYS, formatCountdown, isUnlocked, unlockAt } from '../../lib/time';
 import type { CalendarController } from '../calendar/controller';
 import SoundToggle from '../SoundToggle';
+import { KEY_DAYS, useUnlocks } from '../../lib/unlocks';
 import { DESIGNS, OrnamentArt } from './ornaments/Ornament';
 import { geometry, step, type Body, type Geometry, type Vec } from './ornaments/physics';
 
@@ -69,6 +70,7 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
   const [sparkles, setSparkles] = useState<{ id: number; x: number; y: number }[]>([]);
   const [selected, setSelected] = useState<{ day: number; from: { x: number; y: number; r: number } } | null>(null);
   const focusRef = useRef<HTMLDivElement>(null);
+  const { found, keyActive } = useUnlocks();
 
   // Measure the stage; rescale the world when it changes size.
   useLayoutEffect(() => {
@@ -221,6 +223,7 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
       ctrl.notify('Float it up to the glowing star to take a closer look ✨');
       return;
     }
+    found('ornaments', day);
     pick(b);
   };
 
@@ -304,7 +307,7 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
         onKeyDown={(e) => onKey(e, true)}
         onKeyUp={(e) => onKey(e, false)}
       >
-        {geo && <TreeArt geo={geo} />}
+        {geo && <TreeArt geo={geo} clue={keyActive('ornaments') ? KEY_DAYS.ornaments! : null} />}
         {geo && (
           <div
             className={zoneCount > 0 ? 'orn-zone is-active' : 'orn-zone'}
@@ -392,7 +395,7 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
   );
 }
 
-function TreeArt({ geo }: { geo: Geometry }) {
+function TreeArt({ geo, clue }: { geo: Geometry; clue: number | null }) {
   const [t1, , t3] = geo.tiers;
   const trunkW = (t1[2].x - t1[1].x) * 0.22;
   const lights = geo.tiers.flatMap((tri, ti) =>
@@ -444,6 +447,12 @@ function TreeArt({ geo }: { geo: Geometry }) {
           d="M0 -16 l4.7 9.6 10.5 1.5 -7.6 7.4 1.8 10.5 -9.4 -5 -9.4 5 1.8 -10.5 -7.6 -7.4 10.5 -1.5 Z"
           fill="#FFD34D"
         />
+        {/* the key, engraved on the star */}
+        {clue !== null && (
+          <text y="4" textAnchor="middle" className="key-star">
+            {clue}
+          </text>
+        )}
       </g>
     </svg>
   );

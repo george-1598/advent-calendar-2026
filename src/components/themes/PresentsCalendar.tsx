@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { playUnwrap, playWrap } from '../../lib/sound';
 import type { CalendarController } from '../calendar/controller';
 import SoundToggle from '../SoundToggle';
+import { KeyClue, useUnlocks } from '../../lib/unlocks';
 import Gift from './presents/Gift';
 import { GIFT_DESIGNS, GIFT_ORDER } from './presents/designs';
 
@@ -10,6 +11,7 @@ const UNWRAP_MS = 950;
 export default function PresentsCalendar({ ctrl }: { ctrl: CalendarController }) {
   const [unwrapping, setUnwrapping] = useState<number | null>(null);
   const modalWasOpened = useRef(false);
+  const { found } = useUnlocks();
   const timer = useRef<number>();
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -30,6 +32,7 @@ export default function PresentsCalendar({ ctrl }: { ctrl: CalendarController })
   };
 
   const onGift = (day: number) => {
+    if (found('presents', day) === 'unlocked') return;
     const state = ctrl.stateOf(day);
     if (!state.canOpen) return ctrl.rejectLocked(day);
     if (unwrapping !== null) return;
@@ -58,6 +61,7 @@ export default function PresentsCalendar({ ctrl }: { ctrl: CalendarController })
           />
         ))}
       </div>
+      <KeyClue theme="presents" className="key-clue--presents" />
     </div>
   );
 }
