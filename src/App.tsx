@@ -2,6 +2,8 @@ import { useState } from 'react';
 import Calendar from './components/Calendar';
 import BadgesView from './components/BadgesView';
 import AboutView from './components/AboutView';
+import LoginView from './components/LoginView';
+import { useAuth } from './lib/auth';
 
 export type View = 'calendar' | 'badges' | 'about';
 
@@ -12,6 +14,7 @@ const NAV: { id: View; label: string }[] = [
 ];
 
 export default function App() {
+  const { session, loading } = useAuth();
   const [view, setView] = useState<View>('calendar');
 
   const navigate = (next: View) => {
@@ -22,23 +25,33 @@ export default function App() {
   return (
     <>
       <header className="header">
-        <nav className="nav" aria-label="Main">
-          {NAV.map((item) => (
-            <button
-              key={item.id}
-              aria-current={view === item.id ? 'page' : undefined}
-              onClick={() => navigate(item.id)}
-            >
-              {item.label}
-            </button>
-          ))}
-        </nav>
+        {session ? (
+          <nav className="nav" aria-label="Main">
+            {NAV.map((item) => (
+              <button
+                key={item.id}
+                aria-current={view === item.id ? 'page' : undefined}
+                onClick={() => navigate(item.id)}
+              >
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        ) : (
+          <div className="nav nav--plain">Advent Calendar 2026</div>
+        )}
       </header>
 
       <main className="main">
-        {view === 'calendar' && <Calendar onNavigate={navigate} />}
-        {view === 'badges' && <BadgesView />}
-        {view === 'about' && <AboutView />}
+        {loading ? null : !session ? (
+          <LoginView />
+        ) : (
+          <>
+            {view === 'calendar' && <Calendar onNavigate={navigate} />}
+            {view === 'badges' && <BadgesView />}
+            {view === 'about' && <AboutView />}
+          </>
+        )}
       </main>
 
       <footer className="footer">

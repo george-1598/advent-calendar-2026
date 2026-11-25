@@ -10,17 +10,22 @@ import {
   nextUnlock,
   unlockAt,
 } from '../lib/time';
+import { useAuth } from '../lib/auth';
+import { useProgress } from '../lib/progress';
 import DayModal from './DayModal';
-import { LockIcon } from './icons';
-
-const INTRO_MESSAGES = [
-  'A Christmas advent calendar made with love',
-  '25 days · 25 quests · 25 surprises',
-  'Solve each day’s quest to unlock a real gift',
-];
+import { LockIcon, StarIcon } from './icons';
 
 export default function Calendar({ onNavigate }: { onNavigate: (view: View) => void }) {
   const now = useNow();
+  const { profile } = useAuth();
+  const { byDay, solvedCount } = useProgress();
+  const isAdmin = Boolean(profile?.is_admin);
+
+  const INTRO_MESSAGES = [
+    profile ? `Hi ${profile.display_name}! Merry Christmas` : 'A Christmas advent calendar made with love',
+    '25 days · 25 quests · 25 surprises',
+    'Solve each day’s quest to unlock a real gift',
+  ];
   const [openDay, setOpenDay] = useState<{ day: number; color: TileColor } | null>(null);
   const [shakingDay, setShakingDay] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -97,7 +102,9 @@ export default function Calendar({ onNavigate }: { onNavigate: (view: View) => v
                     onClick={() => onNavigate('badges')}
                   >
                     <span className="action-label">My badges</span>
-                    <span className="action-value">0/{TOTAL_DAYS}</span>
+                    <span className="action-value">
+                      {solvedCount}/{TOTAL_DAYS}
+                    </span>
                   </button>
                 );
 
@@ -115,29 +122,37 @@ export default function Calendar({ onNavigate }: { onNavigate: (view: View) => v
               case 'day': {
                 const unlocked = isUnlocked(item.day, now);
                 const today = isToday(item.day, now);
+                const solved = Boolean(byDay[item.day]?.solved_at);
+                // Admins can open locked days to preview and test quests.
+                const canOpen = unlocked || isAdmin;
                 const classes = [
                   'tile',
                   'tile--day',
                   `tile--${item.color}`,
-                  unlocked ? 'is-open' : 'is-locked',
-                  today && 'is-today',
+                  canOpen ? 'is-open' : 'is-locked',
+                  !unlocked && 'is-future',
+                  today && !solved && 'is-today',
+                  solved && 'is-solved',
                   shakingDay === item.day && 'is-shaking',
                 ]
                   .filter(Boolean)
                   .join(' ');
 
+                const status = solved ? ', solved' : !unlocked ? ', locked' : today ? ', today' : '';
+
                 return (
                   <button
                     key={item.day}
                     className={classes}
-                    aria-label={`December ${item.day}${unlocked ? (today ? ', today' : '') : ', locked'}`}
+                    aria-label={`December ${item.day}${status}`}
                     onClick={() =>
-                      unlocked ? setOpenDay({ day: item.day, color: item.color }) : handleLocked(item.day)
+                      canOpen ? setOpenDay({ day: item.day, color: item.color }) : handleLocked(item.day)
                     }
                   >
                     <span className="day-number">{item.day}</span>
                     {!unlocked && <LockIcon className="day-lock" />}
-                    {today && <span className="today-tag">Today</span>}
+                    {solved && <StarIcon className="day-star" />}
+                    {today && !solved && <span className="today-tag">Today</span>}
                   </button>
                 );
               }
