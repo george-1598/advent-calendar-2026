@@ -46,6 +46,22 @@ export function ago(iso: string | null, now: number): string {
   return `${Math.floor(s / 86400)} d ago`;
 }
 
+/** Full date and time in Bucharest, e.g. "26 Nov, 23:04:42". */
+export function stamp(iso: string | null): string {
+  if (!iso) return '—';
+  return new Date(iso).toLocaleString('en-GB', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+    timeZone: 'Europe/Bucharest',
+  });
+}
+
+const PAGE_SIZE = 10;
+
 export function duration(ms: number): string {
   const s = Math.max(0, Math.round(ms / 1000));
   if (s < 60) return `${s}s`;
@@ -75,6 +91,8 @@ export default function PlayersTab() {
   const [players, setPlayers] = useState<Player[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [open, setOpen] = useState<string | null>(null);
+  const [page, setPage] = useState(0);
+  const [query, setQuery] = useState('');
 
   const load = () => {
     setError(null);
@@ -93,6 +111,12 @@ export default function PlayersTab() {
   const solvedToday = today ? players.filter((p) => p.progress.some((x) => x.day === today && x.solved_at)).length : 0;
   const totalSolved = players.reduce((n, p) => n + p.progress.filter((x) => x.solved_at).length, 0);
   const avgThemes = players.length ? (players.reduce((n, p) => n + 1 + p.unlocks.length, 0) / players.length).toFixed(1) : '0';
+
+  const q = query.trim().toLowerCase();
+  const filtered = q ? players.filter((p) => `${p.name} ${p.email}`.toLowerCase().includes(q)) : players;
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const current = Math.min(page, pages - 1);
+  const shown = filtered.slice(current * PAGE_SIZE, current * PAGE_SIZE + PAGE_SIZE);
 
   return (
     <div className="admin-stack">
@@ -114,11 +138,25 @@ export default function PlayersTab() {
           <small>themes unlocked (avg)</small>
         </div>
       </div>
-      <button className="admin-link" onClick={load}>
-        ↻ Refresh
-      </button>
+      <div className="admin-toolbar">
+        <input
+          className="admin-search"
+          type="search"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setPage(0);
+          }}
+          placeholder="Search players by name or email"
+          aria-label="Search players"
+        />
+        <button className="admin-link" onClick={load}>
+          ↻ Refresh
+        </button>
+      </div>
+      {filtered.length === 0 && <p className="admin-muted">No players match “{query}”.</p>}
 
-      {players.map((p) => {
+      {shown.map((p) => {
         const s = stats(p);
         const byDay = new Map(p.progress.map((x) => [x.day, x]));
         const isOpen = open === p.id;
@@ -181,11 +219,15 @@ export default function PlayersTab() {
                         {i === 0 ? (
                           <span>starting theme</span>
                         ) : u ? (
-                          <span>
-                            {u.attempts != null ? `${u.attempts} item${u.attempts === 1 ? '' : 's'} opened in ${from}` : 'unlocked'}
-                            {u.started_at && ` · took ${duration(new Date(u.unlocked_at).getTime() - new Date(u.started_at).getTime())}`}
-                            {` · ${new Date(u.unlocked_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}`}
-                          </span>
+                          <>
+                            <span>
+                              {u.attempts != null ? `${u.attempts} item${u.attempts === 1 ? '' : 's'} opened in ${from}` : 'unlocked'}
+                              {u.started_at && ` · took ${duration(new Date(u.unlocked_at).getTime() - new Date(u.started_at).getTime())}`}
+                            </span>
+                            <small className="admin-times">
+                              {u.started_at && <>Started {stamp(u.started_at)} · </>}Unlocked {stamp(u.unlocked_at)}
+                            </small>
+                          </>
                         ) : (
                           <span>locked</span>
                         )}
@@ -204,7 +246,9 @@ export default function PlayersTab() {
                         <span className="admin-guess-day">Day {g.day}</span>
                         <span className="admin-guess-text">“{g.guess}”</span>
                         <span>{g.correct ? '✓' : '✗'}</span>
-                        <small>{ago(g.at, now)}</small>
+                        <small title={ago(g.at, now)}>
+                          {stamp(g.at)} · {ago(g.at, now)}
+                        </small>
                       </li>
                     ))}
                   </ul>
@@ -214,6 +258,20 @@ export default function PlayersTab() {
           </article>
         );
       })}
+
+      {pages > 1 && (
+        <nav className="admin-pager" aria-label="Player pages">
+          <button onClick={() => setPage(current - 1)} disabled={current === 0}>
+            ‹ Prev
+          </button>
+          <span>
+            Page {current + 1} of {pages} · {filtered.length} players
+          </span>
+          <button onClick={() => setPage(current + 1)} disabled={current >= pages - 1}>
+            Next ›
+          </button>
+        </nav>
+      )}
     </div>
   );
 }
