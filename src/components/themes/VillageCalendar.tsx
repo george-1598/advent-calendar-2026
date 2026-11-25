@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useExplored } from '../../lib/explored';
-import { playClick, playChime } from '../../lib/sound';
+import { playChime, playLightOff, playLightOn, soundEnabled, startWinterAmbience } from '../../lib/sound';
 import type { CalendarController } from '../calendar/controller';
 import { formatCountdown, unlockAt } from '../../lib/time';
 import SoundToggle from '../SoundToggle';
@@ -18,6 +18,35 @@ export default function VillageCalendar({ ctrl }: { ctrl: CalendarController }) 
   const lit = useExplored('village');
   const scrollRef = useRef<HTMLDivElement>(null);
   const [peek, setPeek] = useState<WindowSpec | null>(null);
+  const [wave, setWave] = useState(false);
+  const ambience = useRef<(() => void) | null>(null);
+
+  // Winter wind + snowflakes, started on the first touch (browsers need a gesture).
+  const startAmbience = () => {
+    if (!ambience.current && soundEnabled()) ambience.current = startWinterAmbience();
+  };
+  const stopAmbience = () => {
+    ambience.current?.();
+    ambience.current = null;
+  };
+  useEffect(() => stopAmbience, []);
+
+  const allIds = HOUSES.flatMap((h) => h.windows.map((w) => w.id));
+  const allLit = allIds.every((id) => lit.has(id));
+
+  const lightAll = () => {
+    startAmbience();
+    lit.addMany(allIds);
+    setWave(true);
+    for (let i = 0; i < 10; i++) window.setTimeout(playLightOn, i * 110);
+    window.setTimeout(playChime, 1200);
+    window.setTimeout(() => setWave(false), 2200);
+  };
+
+  const allOff = () => {
+    playLightOff();
+    lit.clear();
+  };
 
   useEffect(() => {
     // Start in the middle of the street on narrow screens.
@@ -26,9 +55,10 @@ export default function VillageCalendar({ ctrl }: { ctrl: CalendarController }) 
   }, []);
 
   const onWindow = (w: WindowSpec) => {
+    startAmbience();
     if (!lit.has(w.id)) {
       lit.add(w.id);
-      playClick();
+      playLightOn();
       if (w.day) window.setTimeout(playChime, 250);
       return;
     }
@@ -42,9 +72,9 @@ export default function VillageCalendar({ ctrl }: { ctrl: CalendarController }) 
     <div className="village-wrap">
       <div className="village-head">
         <p className="theme-lead village-lead">Turn on the lights to find today’s window</p>
-        <SoundToggle />
+        <SoundToggle onChange={(on) => (on ? startAmbience() : stopAmbience())} />
       </div>
-      <div className="village-scroll" ref={scrollRef}>
+      <div className="village-scroll" ref={scrollRef} onPointerDown={startAmbience}>
         <svg className="village" viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} role="group" aria-label="A snowy village at night">
           <defs>
             <linearGradient id="v-sky" x1="0" y1="0" x2="0" y2="1">
@@ -113,7 +143,7 @@ export default function VillageCalendar({ ctrl }: { ctrl: CalendarController }) 
           ))}
 
           {HOUSES.map((house, i) => (
-            <House key={i} house={house} isLit={lit.has} onWindow={onWindow} />
+            <House key={i} house={house} isLit={lit.has} onWindow={onWindow} wave={wave} />
           ))}
 
           {/* Ground */}
@@ -198,7 +228,17 @@ export default function VillageCalendar({ ctrl }: { ctrl: CalendarController }) 
             ) : (
               <p className="v-peek-note">{COSY[peek.id % COSY.length]}</p>
             )}
-            <button className="sc-btn" onClick={() => setPeek(null)}>
+            <button
+              className="sc-btn"
+              onClick={() => {
+                lit.remove(peek.id);
+                playLightOff();
+                setPeek(null);
+              }}
+            >
+              Switch the light off
+            </button>
+            <button className="theme-reset" onClick={() => setPeek(null)}>
               Back to the street
             </button>
           </div>
@@ -209,11 +249,14 @@ export default function VillageCalendar({ ctrl }: { ctrl: CalendarController }) 
           {lit.size} / {WINDOW_COUNT} lights on · tap a lit window to peek inside
         </span>
         {lit.size > 0 && (
-          <button className="theme-reset" onClick={lit.clear}>
+          <button className="theme-reset" onClick={allOff}>
             Turn all lights off
           </button>
         )}
       </div>
+      <button className="theme-help" onClick={lightAll} disabled={allLit}>
+        Light up every window
+      </button>
     </div>
   );
 }
@@ -222,10 +265,12 @@ function House({
   house,
   isLit,
   onWindow,
+  wave,
 }: {
   house: HouseSpec;
   isLit: (id: number) => boolean;
   onWindow: (w: WindowSpec) => void;
+  wave: boolean;
 }) {
   const top = GROUND - house.h;
   const { x, w } = house;
@@ -287,13 +332,33 @@ function House({
         </g>
       )}
       {house.windows.map((win) => (
-        <VillageWindow key={win.id} win={win} trim={house.trim} on={isLit(win.id)} onClick={() => onWindow(win)} />
+        <VillageWindow
+          key={win.id}
+          win={win}
+          trim={house.trim}
+          on={isLit(win.id)}
+          // Light-all sweeps along the street from left to right.
+          delay={wave ? Math.round(win.x * 1.4 + (win.y % 97)) : 0}
+          onClick={() => onWindow(win)}
+        />
       ))}
     </g>
   );
 }
 
-function VillageWindow({ win, trim, on, onClick }: { win: WindowSpec; trim: string; on: boolean; onClick: () => void }) {
+function VillageWindow({
+  win,
+  trim,
+  on,
+  delay,
+  onClick,
+}: {
+  win: WindowSpec;
+  trim: string;
+  on: boolean;
+  delay: number;
+  onClick: () => void;
+}) {
   const { x, y, w, h } = win;
   const clip = `v-win-${win.id}`;
   const shape = win.arched
@@ -310,6 +375,7 @@ function VillageWindow({ win, trim, on, onClick }: { win: WindowSpec; trim: stri
   return (
     <g
       className={on ? 'v-window is-on' : 'v-window'}
+      style={{ ['--delay' as string]: `${delay}ms` }}
       role="button"
       tabIndex={0}
       aria-label={on ? (numbered ? `Lit window showing ${win.day}` : 'Lit window') : 'Dark window'}

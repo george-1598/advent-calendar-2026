@@ -2,18 +2,20 @@ import { between, pick, rng, shuffle } from '../../../lib/random';
 import { TOTAL_DAYS } from '../../../lib/time';
 
 export type Motif = 'holly' | 'tree' | 'star' | 'candle' | 'bird' | 'none';
+export type Orientation = 'upright' | 'lean' | 'flat' | 'cover';
 
 export interface BookSpec {
   id: string;
   /** null for decoy books that aren't a day. */
   day: number | null;
-  /** 'cover' books face outwards, showing their front cover. */
-  kind: 'spine' | 'cover';
-  /** Size in shelf units (a shelf row is 100 units tall). */
+  orientation: Orientation;
+  /** Spine thickness and length in shelf units (a shelf row is 100 units tall). */
   width: number;
   height: number;
   color: string;
   ink: string;
+  /** Gold-stamped lettering (vs. dark ink on pale books). */
+  gilt: boolean;
   lean: number;
   overlap: number;
   bands: number[];
@@ -24,28 +26,28 @@ export interface BookSpec {
   quote: string;
 }
 
+export type ShelfItem = { kind: 'book'; book: BookSpec } | { kind: 'stack'; books: BookSpec[] };
+
 const PALETTE = [
-  { color: '#A8322D', ink: '#E7C77E' },
-  { color: '#7C1F1D', ink: '#E2BE6F' },
-  { color: '#2F5E3F', ink: '#E7C77E' },
-  { color: '#1E3F2E', ink: '#D9B66A' },
-  { color: '#22355A', ink: '#E2C27A' },
-  { color: '#2C5F67', ink: '#EBD08F' },
-  { color: '#C28A2C', ink: '#4A2612' },
-  { color: '#E6D9BC', ink: '#8A2A22' },
-  { color: '#C2552B', ink: '#F3DDA6' },
-  { color: '#5B2E4A', ink: '#E7C77E' },
+  { color: '#8E2A24', ink: '#E7C77E', gilt: true },
+  { color: '#6A1C1A', ink: '#E2BE6F', gilt: true },
+  { color: '#2C5639', ink: '#E7C77E', gilt: true },
+  { color: '#1C3A2A', ink: '#D9B66A', gilt: true },
+  { color: '#21324F', ink: '#E2C27A', gilt: true },
+  { color: '#2A5860', ink: '#EBD08F', gilt: true },
+  { color: '#B5822E', ink: '#3E1F0E', gilt: false },
+  { color: '#DED0B0', ink: '#7A231C', gilt: false },
+  { color: '#A94B27', ink: '#F3DDA6', gilt: true },
+  { color: '#50283F', ink: '#E7C77E', gilt: true },
+  { color: '#5B3A26', ink: '#E2C27A', gilt: true },
 ];
 
+// Short, readable titles.
 const TITLES = [
-  'A Christmas Tale', 'Frost & Firelight', 'The Snow Garden', 'Letters to the North', 'The Midnight Star',
-  'Winter Lanterns', 'The Holly Book', 'Carols by Candlelight', 'The Little Fir Tree', 'Tales of the Yule Log',
-  'The Gingerbread Atlas', 'A Robin in December', 'The Silver Bells', 'Under the Mistletoe', 'The Night Before',
-  'Stories by the Fire', 'The Paper Snowflake', 'Sleigh Bells', 'The Velvet Ribbon', 'A Winter Hamper',
-  'The Lamplighter', 'Christmas Cookery', 'Songs of the Season', 'The Frozen Lake', 'A Pocket of Stars',
-  'The Wreath Maker', 'Cinnamon & Clove', 'Northern Lights', 'The Toymaker’s Shop', 'An Evergreen Year',
-  'The Reindeer Road', 'Hot Cocoa Mornings', 'The Snowed-In Inn', 'A Book of Wishes', 'Twelve Little Nights',
-  'The Ornament Box', 'Starlight Stories', 'The Ice Skater',
+  'Noel', 'Holly', 'Snow', 'Frost', 'Yule', 'Carols', 'Tinsel', 'Stars', 'Mittens', 'Cocoa',
+  'Ginger', 'Robin', 'Bells', 'Wreath', 'Winter', 'Embers', 'Sleigh', 'Candles', 'Pine', 'Velvet',
+  'Lanterns', 'Snowfall', 'Nutmeg', 'Garland', 'Reindeer', 'Wishes', 'Firelight', 'Cinnamon',
+  'Twilight', 'Ribbons', 'Icicles', 'Chestnuts', 'Joy', 'Peace', 'Angels', 'Evergreen', 'Fir', 'Gifts',
 ];
 
 const QUOTES = [
@@ -63,10 +65,9 @@ const QUOTES = [
 
 const MOTIFS: Motif[] = ['holly', 'tree', 'star', 'candle', 'bird', 'none', 'none'];
 const DECOYS = 13;
-// Four days get face-out covers, like the big illustrated books on a real shelf.
 const COVER_DAYS = new Set([4, 11, 17, 23]);
 
-function buildBooks(): BookSpec[] {
+function buildShelf(): ShelfItem[] {
   const r = rng(1843);
   const ids: (number | null)[] = [
     ...Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1),
@@ -77,27 +78,56 @@ function buildBooks(): BookSpec[] {
 
   const books = ids.map((day, i): BookSpec => {
     const palette = pick(r, PALETTE);
-    const kind = day && COVER_DAYS.has(day) ? 'cover' : 'spine';
-    const bands = Array.from({ length: 2 + Math.floor(r() * 3) }, () => between(r, 6, 94)).sort((a, b) => a - b);
+    const cover = day !== null && COVER_DAYS.has(day);
     return {
       id: day ? `day-${day}` : `decoy-${decoyIndex++}`,
       day,
-      kind,
-      width: kind === 'cover' ? between(r, 54, 62) : between(r, 14, 26),
-      height: kind === 'cover' ? between(r, 80, 90) : between(r, 70, 95),
-      color: palette.color,
-      ink: palette.ink,
-      lean: kind === 'spine' && r() < 0.18 ? between(r, -6, 6) : 0,
-      overlap: r() < 0.55 ? between(r, 1.5, 4.5) : 0,
-      bands,
+      orientation: cover ? 'cover' : 'upright',
+      width: cover ? between(r, 54, 62) : between(r, 18, 28),
+      height: cover ? between(r, 80, 90) : between(r, 72, 94),
+      ...palette,
+      lean: 0,
+      overlap: r() < 0.45 ? between(r, 1, 3.5) : 0,
+      bands: [between(r, 6, 12), between(r, 84, 92), ...(r() < 0.5 ? [between(r, 66, 74)] : [])],
       motif: pick(r, MOTIFS),
-      numberTop: between(r, 18, 72),
+      numberTop: between(r, 62, 76),
       numberSide: r() < 0.5 ? 'left' : 'right',
       title: titles[i % titles.length],
       quote: pick(r, QUOTES),
     };
   });
-  return shuffle(rng(77), books);
+
+  // Mix them up, then lay some flat in little stacks and lean a few.
+  const order = shuffle(rng(77), books);
+  const items: ShelfItem[] = [];
+  const sr = rng(5150);
+  let i = 0;
+  while (i < order.length) {
+    const book = order[i];
+    const canStack = book.orientation === 'upright' && order[i + 1]?.orientation === 'upright';
+    if (canStack && items.length > 1 && sr() < 0.16) {
+      const count = sr() < 0.5 ? 2 : 3;
+      const stack = order.slice(i, i + count).filter((b) => b.orientation === 'upright');
+      stack.forEach((b) => {
+        b.orientation = 'flat';
+        b.width = between(sr, 13, 18); // thickness when lying down
+        b.height = between(sr, 62, 78); // length
+        b.overlap = 0;
+      });
+      items.push({ kind: 'stack', books: stack });
+      i += stack.length;
+      continue;
+    }
+    if (book.orientation === 'upright' && sr() < 0.14) {
+      book.orientation = 'lean';
+      book.lean = (sr() < 0.5 ? -1 : 1) * between(sr, 9, 15);
+      book.overlap = 0;
+    }
+    items.push({ kind: 'book', book });
+    i++;
+  }
+  return items;
 }
 
-export const BOOKS = buildBooks();
+export const SHELF = buildShelf();
+export const BOOKS = SHELF.flatMap((item) => (item.kind === 'book' ? [item.book] : item.books));

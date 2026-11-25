@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { setSoundEnabled, soundEnabled } from '../lib/sound';
 
-export default function SoundToggle() {
+export default function SoundToggle({ onChange }: { onChange?: (on: boolean) => void }) {
   const [on, setOn] = useState(soundEnabled);
   return (
     <button
@@ -11,6 +11,7 @@ export default function SoundToggle() {
       onClick={() => {
         setSoundEnabled(!on);
         setOn(!on);
+        onChange?.(!on);
       }}
     >
       {on ? '🔊' : '🔇'}

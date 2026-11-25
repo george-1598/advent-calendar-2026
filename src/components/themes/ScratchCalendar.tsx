@@ -1,5 +1,6 @@
 import { useEffect, useState, type CSSProperties } from 'react';
 import { useExplored } from '../../lib/explored';
+import { playChime, playSweep } from '../../lib/sound';
 import { rng, shuffle } from '../../lib/random';
 import { TOTAL_DAYS, formatCountdown, unlockAt } from '../../lib/time';
 import type { CalendarController } from '../calendar/controller';
@@ -16,6 +17,17 @@ export default function ScratchCalendar({ ctrl }: { ctrl: CalendarController }) 
   const revealed = useExplored('scratch');
   const [active, setActive] = useState<number | null>(null);
   const [justRevealed, setJustRevealed] = useState(false);
+  const [sweeping, setSweeping] = useState<Set<number> | null>(null);
+  const hiddenDays = ORDER.filter((d) => !revealed.has(d));
+
+  const scratchAll = () => {
+    if (hiddenDays.length === 0) return;
+    revealed.addMany(hiddenDays);
+    setSweeping(new Set(hiddenDays));
+    playSweep();
+    window.setTimeout(playChime, 900);
+    window.setTimeout(() => setSweeping(null), 600 + ORDER.length * 60 + 200);
+  };
   const foil = foilDataUrl();
 
   useEffect(() => {
@@ -64,11 +76,17 @@ export default function ScratchCalendar({ ctrl }: { ctrl: CalendarController }) 
               }}
             >
               {isRevealed ? <CardFace day={day} /> : <span className="sc-tile-foil" />}
+              {sweeping?.has(day) && (
+                <span className="sc-tile-foil is-peeling" style={{ animationDelay: `${i * 60}ms` }} />
+              )}
               {solved && <StarIcon className="sc-tile-star" />}
             </button>
           );
         })}
       </div>
+      <button className="theme-help" onClick={scratchAll} disabled={hiddenDays.length === 0}>
+        Scratch all the cards at once
+      </button>
       {revealed.size > 0 && (
         <button className="theme-reset" onClick={revealed.clear}>
           Cover all cards again

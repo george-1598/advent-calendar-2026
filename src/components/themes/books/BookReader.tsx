@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { NUMBER_WORDS } from '../../../lib/random';
+import { playBookSlide, playPageFlip } from '../../../lib/sound';
 import { formatCountdown, unlockAt } from '../../../lib/time';
 import type { DayState } from '../../calendar/controller';
 import { Flourish, MotifArt } from './art';
@@ -32,8 +33,12 @@ export default function BookReader({ book, from, state, now, onQuest, onClose }:
   const vh = window.innerHeight;
   const bw = Math.min(250, (vw - 28) / 2, (vh * 0.62) / 1.45);
   const bh = bw * 1.45;
-  const scale = from.height / bh;
-  const bt = Math.max(10, from.width / scale); // spine thickness at full size
+  // A book lying flat has its spine along the width of its rectangle.
+  const flat = book.orientation === 'flat';
+  const spineLength = flat ? from.width : from.height;
+  const spineThickness = flat ? from.height : from.width;
+  const scale = spineLength / bh;
+  const bt = Math.max(10, spineThickness / scale); // spine thickness at full size
 
   useLayoutEffect(() => {
     // Map the spine (just left of the hinge) onto the book's spot on the shelf.
@@ -41,15 +46,25 @@ export default function BookReader({ book, from, state, now, onQuest, onClose }:
     const r = el.getBoundingClientRect();
     const originX = r.left;
     const originY = r.top + bh / 2;
-    const tx = from.left + from.width / 2 - originX - scale * (-bt / 2);
-    const ty = from.top + from.height / 2 - originY;
-    setStart({ transform: `translate(${tx}px, ${ty}px) scale(${scale}) rotateY(90deg)` });
+    const cx = from.left + from.width / 2;
+    const cy = from.top + from.height / 2;
+    if (flat) {
+      // Rotated -90° about the hinge, the spine centre sits below the origin.
+      const tx = cx - originX;
+      const ty = cy - originY - (scale * bt) / 2;
+      setStart({ transform: `translate(${tx}px, ${ty}px) rotate(-90deg) scale(${scale}) rotateY(90deg)` });
+    } else {
+      const tx = cx - originX - scale * (-bt / 2);
+      const ty = cy - originY;
+      setStart({ transform: `translate(${tx}px, ${ty}px) rotate(0deg) scale(${scale}) rotateY(90deg)` });
+    }
     const later = (fn: () => void, ms: number) => timers.current.push(window.setTimeout(fn, ms));
     later(() => setPhase('lift'), 40);
     later(() => setPhase('front'), 640);
     later(() => {
       setPhase('open');
       setFlipped(1);
+      playPageFlip();
     }, 1180);
     const all = timers.current;
     return () => all.forEach((t) => window.clearTimeout(t));
@@ -57,6 +72,8 @@ export default function BookReader({ book, from, state, now, onQuest, onClose }:
   }, []);
 
   const close = () => {
+    if (phase === 'closing') return;
+    playBookSlide();
     setPhase('closing');
     timers.current.push(window.setTimeout(onClose, 260));
   };
@@ -140,8 +157,16 @@ export default function BookReader({ book, from, state, now, onQuest, onClose }:
     },
   ];
 
-  const next = () => phase === 'open' && setFlipped((f) => Math.min(leaves.length, f + 1));
-  const prev = () => phase === 'open' && setFlipped((f) => Math.max(1, f - 1));
+  const next = () => {
+    if (phase !== 'open' || flipped >= leaves.length) return;
+    playPageFlip();
+    setFlipped(flipped + 1);
+  };
+  const prev = () => {
+    if (phase !== 'open' || flipped <= 1) return;
+    playPageFlip();
+    setFlipped(flipped - 1);
+  };
   const atEnd = flipped === leaves.length;
 
   let finalPage: ReactNode;

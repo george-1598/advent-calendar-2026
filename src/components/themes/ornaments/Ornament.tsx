@@ -31,9 +31,9 @@ const COLORS = [
 const ACCENTS = ['#FFFFFF', '#F6D36B', '#FFE3E3'];
 
 const MATERIALS: Record<Material, { density: number; drag: number }> = {
-  glass: { density: 0.6, drag: 1.5 },
-  ceramic: { density: 1.1, drag: 0.8 },
-  metal: { density: 1.7, drag: 0.35 },
+  glass: { density: 0.6, drag: 2.4 },
+  ceramic: { density: 1.1, drag: 1.7 },
+  metal: { density: 1.7, drag: 1.1 },
 };
 
 export const DESIGNS: OrnamentDesign[] = (() => {
@@ -42,7 +42,7 @@ export const DESIGNS: OrnamentDesign[] = (() => {
     const c = pick(r, COLORS);
     const material = pick(r, ['glass', 'glass', 'ceramic', 'metal'] as Material[]);
     const shape = pick(r, ['ball', 'ball', 'ball', 'drop', 'bell', 'star'] as Shape[]);
-    const size = between(r, 15, 24);
+    const size = between(r, 22, 30);
     const m = MATERIALS[material];
     return {
       day: i + 1,

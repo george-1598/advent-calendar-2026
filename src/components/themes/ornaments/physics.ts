@@ -56,7 +56,7 @@ export function geometry(w: number, h: number): Geometry {
     w,
     h,
     unit: Math.min(w, h) / 420,
-    world: { minX: -w, maxX: w * 2, minY: -h * 0.9, maxY: h },
+    world: { minX: -w * 0.7, maxX: w * 1.7, minY: -h * 0.6, maxY: h },
     tiers,
     // A glowing basket on the floor below the tree: ornaments resting on the
     // bottom edge in the middle are inside it.
@@ -133,7 +133,9 @@ function collideTri(body: Body, tri: Tri, events: StepEvents) {
 }
 
 export function step(bodies: Body[], geo: Geometry, g: Vec, dt: number, events: StepEvents) {
-  const G = 2000 * geo.unit;
+  // Gentle gravity so ornaments drift rather than shoot across the screen.
+  const G = 620 * geo.unit;
+  const maxSpeed = 380 * geo.unit;
   const { world } = geo;
 
   for (const b of bodies) {
@@ -143,6 +145,11 @@ export function step(bodies: Body[], geo: Geometry, g: Vec, dt: number, events: 
     const k = Math.exp(-b.drag * dt);
     b.vx *= k;
     b.vy *= k;
+    const speed = Math.hypot(b.vx, b.vy);
+    if (speed > maxSpeed) {
+      b.vx *= maxSpeed / speed;
+      b.vy *= maxSpeed / speed;
+    }
     b.x += b.vx * dt;
     b.y += b.vy * dt;
 

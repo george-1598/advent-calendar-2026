@@ -1,8 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
-import { useExplored } from '../../lib/explored';
 import { between, rng } from '../../lib/random';
 import { playChime, playTink } from '../../lib/sound';
-import { formatCountdown, unlockAt } from '../../lib/time';
+import { TOTAL_DAYS, formatCountdown, isUnlocked, unlockAt } from '../../lib/time';
 import type { CalendarController } from '../calendar/controller';
 import SoundToggle from '../SoundToggle';
 import { DESIGNS, OrnamentArt } from './ornaments/Ornament';
@@ -24,13 +23,13 @@ function initialBodies(geo: Geometry): Body[] {
     for (let tries = 0; tries < 40; tries++) {
       if (i < 5) {
         // A few start inside the view, near the sides.
-        x = r() < 0.5 ? between(r, 0.06, 0.2) * w : between(r, 0.8, 0.94) * w;
+        x = r() < 0.5 ? between(r, 0.08, 0.2) * w : between(r, 0.8, 0.92) * w;
         y = between(r, 0.15, 0.75) * h;
       } else {
         const side = Math.floor(r() * 3);
-        if (side === 0) [x, y] = [between(r, -0.95, -0.12) * w, between(r, -0.8, 0.9) * h];
-        else if (side === 1) [x, y] = [between(r, 1.12, 1.95) * w, between(r, -0.8, 0.9) * h];
-        else [x, y] = [between(r, -0.6, 1.6) * w, between(r, -0.85, -0.12) * h];
+        if (side === 0) [x, y] = [between(r, -0.62, -0.12) * w, between(r, -0.5, 0.9) * h];
+        else if (side === 1) [x, y] = [between(r, 1.12, 1.62) * w, between(r, -0.5, 0.9) * h];
+        else [x, y] = [between(r, -0.5, 1.5) * w, between(r, -0.55, -0.12) * h];
       }
       if (!overlaps(x, y, rad)) break;
     }
@@ -70,7 +69,6 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
   const [zoneCount, setZoneCount] = useState(0);
   const [sparkles, setSparkles] = useState<{ id: number; x: number; y: number }[]>([]);
   const [selected, setSelected] = useState<{ day: number; from: { x: number; y: number; r: number } } | null>(null);
-  const revealed = useExplored('ornaments');
   const focusRef = useRef<HTMLDivElement>(null);
 
   // Measure the stage; rescale the world when it changes size.
@@ -224,11 +222,29 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
       ctrl.notify('Roll it into the glowing circle to take a closer look ✨');
       return;
     }
+    pick(b);
+  };
+
+  const pick = (b: Body) => {
+    const g = geoRef.current!;
     b.held = true;
-    els.current[day]?.classList.add('is-held');
-    revealed.add(day);
+    els.current[b.day]?.classList.add('is-held');
     playChime();
-    setSelected({ day, from: { x: b.x, y: b.y, r: b.r } });
+    // If it's off-screen, start the flight from the nearest edge.
+    const x = Math.max(b.r, Math.min(g.w - b.r, b.x));
+    const y = Math.max(b.r, Math.min(g.h - b.r, b.y));
+    setSelected({ day: b.day, from: { x, y, r: b.r } });
+  };
+
+  // Today's ornament (the latest unlocked day), or day 1 before December.
+  const todayDay = (() => {
+    for (let d = TOTAL_DAYS; d >= 1; d--) if (isUnlocked(d, ctrl.now)) return d;
+    return 1;
+  })();
+  const showToday = () => {
+    if (selected) return;
+    const b = bodies.current.find((x) => x.day === todayDay);
+    if (b) pick(b);
   };
 
   const hangBack = () => {
@@ -245,6 +261,7 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
 
   const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest('.orn, .orn-focus, .orn-enable')) return;
+    e.preventDefault(); // no text selection while dragging to tilt
     e.currentTarget.setPointerCapture(e.pointerId);
     dragTilt.current = { sx: e.clientX, sy: e.clientY, v: { x: 0, y: 0 } };
   };
@@ -305,10 +322,10 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
                 ref={(el) => (els.current[d.day] = el)}
                 className="orn"
                 style={{ width: size, height: size } as CSSProperties}
-                aria-label={revealed.has(d.day) ? `Ornament ${d.day}` : 'An ornament'}
+                aria-label={`Ornament ${d.day}`}
                 onClick={() => onOrnament(d.day)}
               >
-                <OrnamentArt design={d} label={revealed.has(d.day) ? d.day : null} />
+                <OrnamentArt design={d} label={d.day} />
               </button>
             );
           })}
@@ -363,6 +380,9 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
           </button>
         )}
       </div>
+      <button className="theme-help" onClick={showToday} disabled={!!selected}>
+        {ctrl.stateOf(todayDay).today ? 'Show me today’s ornament' : `Show me ornament ${todayDay}`}
+      </button>
       <p className="orn-hint">
         {tilt === 'on' ? 'Tilt your phone to roll the ornaments' : 'Drag anywhere on the tree (or use arrow keys) to tilt it'}
       </p>

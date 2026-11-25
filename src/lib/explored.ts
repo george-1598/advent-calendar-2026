@@ -43,6 +43,25 @@ export function useExplored(name: string) {
     });
   }, []);
 
+  const addMany = useCallback((ns: number[]) => {
+    setState((prev) => {
+      const set = new Set(prev.set);
+      ns.forEach((n) => set.add(n));
+      write(prev.key, set);
+      return { key: prev.key, set };
+    });
+  }, []);
+
+  const remove = useCallback((n: number) => {
+    setState((prev) => {
+      if (!prev.set.has(n)) return prev;
+      const set = new Set(prev.set);
+      set.delete(n);
+      write(prev.key, set);
+      return { key: prev.key, set };
+    });
+  }, []);
+
   const clear = useCallback(() => {
     setState((prev) => {
       write(prev.key, new Set());
@@ -50,5 +69,5 @@ export function useExplored(name: string) {
     });
   }, []);
 
-  return { has: (n: number) => current.set.has(n), add, clear, size: current.set.size };
+  return { has: (n: number) => current.set.has(n), add, addMany, remove, clear, size: current.set.size };
 }
