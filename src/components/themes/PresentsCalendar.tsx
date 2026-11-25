@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { playUnwrap, playWrap } from '../../lib/sound';
 import type { CalendarController } from '../calendar/controller';
 import SoundToggle from '../SoundToggle';
-import { KeyClue, useUnlocks } from '../../lib/unlocks';
+import { KEY_DAYS, useUnlocks } from '../../lib/unlocks';
 import Gift from './presents/Gift';
 import { GIFT_DESIGNS, GIFT_ORDER } from './presents/designs';
 
@@ -11,7 +11,7 @@ const UNWRAP_MS = 950;
 export default function PresentsCalendar({ ctrl }: { ctrl: CalendarController }) {
   const [unwrapping, setUnwrapping] = useState<number | null>(null);
   const modalWasOpened = useRef(false);
-  const { found } = useUnlocks();
+  const { found, keyActive } = useUnlocks();
   const timer = useRef<number>();
 
   useEffect(() => () => window.clearTimeout(timer.current), []);
@@ -46,6 +46,15 @@ export default function PresentsCalendar({ ctrl }: { ctrl: CalendarController })
     <div className="presents-wrap">
       <div className="scratch-head">
         <p className="theme-lead presents-lead">Unwrap one present a day</p>
+        {keyActive('presents') && (
+          <button
+            className="key-tag"
+            aria-label={`Key clue: find present ${KEY_DAYS.presents} to unlock a new theme`}
+            onClick={() => ctrl.notify(`Find present ${KEY_DAYS.presents} among the gifts to unlock a new theme ✨`)}
+          >
+            <span className="key-tag-card">🗝 {KEY_DAYS.presents}</span>
+          </button>
+        )}
         <SoundToggle />
       </div>
       <div className="presents">
@@ -61,7 +70,6 @@ export default function PresentsCalendar({ ctrl }: { ctrl: CalendarController })
           />
         ))}
       </div>
-      <KeyClue theme="presents" className="key-clue--presents" />
     </div>
   );
 }

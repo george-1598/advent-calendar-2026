@@ -765,3 +765,71 @@
 .unlock-desc { font-size: 14px; color: #666; line-height: 1.45; }
 .unlock-go { margin-top: 6px; padding: 12px 26px; border-radius: 999px; background: #c8102e; color: #fff; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; font-size: 13px; }
 .unlock-later { font-size: 13px; color: #8a7a6a; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Presents: the key clue is a kraft gift tag swinging on a string by the heading */
+.key-tag {
+  position: relative;
+  flex: none;
+  align-self: flex-start;
+  width: 50px;
+  height: 58px;
+  margin-top: -12px;
+  padding: 0;
+  transform-origin: 50% 0;
+  animation: key-tag-swing 3.2s ease-in-out infinite;
+}
+.key-tag::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 1.5px;
+  height: 16px;
+  background: #b0864f;
+}
+.key-tag-card {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 14px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  padding-top: 6px;
+  font-family: 'Caveat', cursive;
+  font-weight: 700;
+  font-size: 21px;
+  color: #fff;
+  background: linear-gradient(135deg, #d39a5c, #b9783d);
+  clip-path: polygon(22% 0, 78% 0, 100% 24%, 100% 100%, 0 100%, 0 24%);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.45);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+}
+.key-tag-card::before {
+  /* the hole */
+  content: '';
+  position: absolute;
+  top: 5px;
+  left: 50%;
+  width: 6px;
+  height: 6px;
+  margin-left: -3px;
+  border-radius: 50%;
+  background: var(--page-bg);
+}
+.key-tag-card::after {
+  /* an occasional glint so the eye catches it */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.75) 50%, transparent 65%);
+  transform: translateX(-130%);
+  animation: sheen 3.6s ease-in-out infinite;
+}
+.key-tag:hover, .key-tag:focus-visible { animation-play-state: paused; outline: none; }
+.key-tag:focus-visible .key-tag-card { box-shadow: inset 0 0 0 2px #e5432e; }
+@keyframes key-tag-swing {
+  0%, 100% { transform: rotate(-9deg); }
+  50% { transform: rotate(9deg); }
+}
