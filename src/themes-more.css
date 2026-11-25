@@ -534,6 +534,16 @@
 .bk-date { font-size: calc(var(--bw) * 0.055); color: #6b4a2e; }
 .bk-flourish { width: 70%; }
 .bk-illustration svg { width: 55%; opacity: 0.85; }
+.bk-key-note {
+  font-style: normal !important;
+  font-size: calc(var(--bw) * 0.058) !important;
+  line-height: 1.35;
+  padding: 6px 8px;
+  border: 1px dashed #a5201b;
+  border-radius: 4px;
+  color: #a5201b;
+  background: rgba(165, 32, 27, 0.06);
+}
 .bk-quest-btn {
   margin-top: 6px;
   padding: 10px 16px;

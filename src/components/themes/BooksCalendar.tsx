@@ -12,14 +12,20 @@ const BOOKMARK_BOOK = BOOKS.find((b) => !b.day && b.orientation === 'upright')?.
 import { StarIcon } from '../icons';
 
 export default function BooksCalendar({ ctrl }: { ctrl: CalendarController }) {
-  const [reading, setReading] = useState<{ book: BookSpec; from: DOMRect } | null>(null);
+  const [reading, setReading] = useState<{ book: BookSpec; from: DOMRect; keyNote: string | null } | null>(null);
   const [showNumbers, setShowNumbers] = useState(false);
   const { found, keyActive } = useUnlocks();
 
   const openBook = (book: BookSpec, el: HTMLElement) => {
-    if (book.day && found('books', book.day, showNumbers) === 'blocked') ctrl.notify(BLOCKED_MESSAGE);
+    const result = book.day ? found('books', book.day, showNumbers) : 'none';
+    if (result === 'blocked') ctrl.notify(BLOCKED_MESSAGE);
+    // Explain the key on the book's last page too, so it can't be missed.
+    let keyNote: string | null = null;
+    if (result === 'unlocked') keyNote = '🔓 You found the key!';
+    else if (result === 'blocked') keyNote = '🗝 This is the key book! Hide the numbers, then pick it again to unlock the next theme.';
+    else if (book.id === BOOKMARK_BOOK && keyActive('books')) keyNote = `🗝 Psst — the key is book ${KEY_DAYS.books}. Find it on the shelf!`;
     playBookSlide();
-    setReading({ book, from: el.getBoundingClientRect() });
+    setReading({ book, from: el.getBoundingClientRect(), keyNote });
   };
 
   const renderBook = (book: BookSpec) => {
@@ -146,6 +152,7 @@ export default function BooksCalendar({ ctrl }: { ctrl: CalendarController }) {
             ctrl.open(day, color);
           }}
           onClose={() => setReading(null)}
+          keyNote={reading.keyNote}
         />
       )}
     </div>

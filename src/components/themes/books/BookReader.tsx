@@ -15,13 +15,15 @@ interface Props {
   now: number;
   onQuest: () => void;
   onClose: () => void;
+  /** A note about the theme's hidden key, shown on the last page. */
+  keyNote?: string | null;
 }
 
 /**
  * The pulled-out book: flies from its spot on the shelf to the centre (spine
  * first), turns to show its cover, opens, and lets you flip through the pages.
  */
-export default function BookReader({ book, from, state, now, onQuest, onClose }: Props) {
+export default function BookReader({ book, from, state, now, onQuest, onClose, keyNote }: Props) {
   const bookRef = useRef<HTMLDivElement>(null);
   const [phase, setPhase] = useState<Phase>('start');
   const [flipped, setFlipped] = useState(0);
@@ -222,7 +224,10 @@ export default function BookReader({ book, from, state, now, onQuest, onClose }:
             <span className="rb-spine-title">{book.title}</span>
           </div>
           <div className="rb-block" />
-          <div className="rb-final bk-page bk-final">{finalPage}</div>
+          <div className="rb-final bk-page bk-final">
+            {keyNote && <p className="bk-key-note">{keyNote}</p>}
+            {finalPage}
+          </div>
           {leaves.map((leaf, i) => {
             const isFlipped = i < flipped;
             return (
