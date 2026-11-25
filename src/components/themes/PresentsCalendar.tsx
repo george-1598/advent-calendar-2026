@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
-import { TOTAL_DAYS } from '../../lib/time';
+import { playUnwrap, playWrap } from '../../lib/sound';
 import type { CalendarController } from '../calendar/controller';
+import SoundToggle from '../SoundToggle';
 import Gift from './presents/Gift';
-import { GIFT_DESIGNS } from './presents/designs';
+import { GIFT_DESIGNS, GIFT_ORDER } from './presents/designs';
 
 const UNWRAP_MS = 950;
-const DAYS = Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1);
 
 export default function PresentsCalendar({ ctrl }: { ctrl: CalendarController }) {
   const [unwrapping, setUnwrapping] = useState<number | null>(null);
@@ -18,6 +18,8 @@ export default function PresentsCalendar({ ctrl }: { ctrl: CalendarController })
   useEffect(() => {
     if (ctrl.openDay === null && modalWasOpened.current) {
       modalWasOpened.current = false;
+      // An unsolved gift wraps itself back up.
+      if (unwrapping !== null && !ctrl.stateOf(unwrapping).solved) playWrap();
       setUnwrapping(null);
     }
   }, [ctrl.openDay]);
@@ -33,20 +35,25 @@ export default function PresentsCalendar({ ctrl }: { ctrl: CalendarController })
     if (unwrapping !== null) return;
     if (state.solved) return openModal(day);
     setUnwrapping(day);
+    playUnwrap();
     timer.current = window.setTimeout(() => openModal(day), UNWRAP_MS);
   };
 
   return (
     <div className="presents-wrap">
-      <p className="theme-lead presents-lead">Unwrap one present a day</p>
+      <div className="scratch-head">
+        <p className="theme-lead presents-lead">Unwrap one present a day</p>
+        <SoundToggle />
+      </div>
       <div className="presents">
-        {DAYS.map((day) => (
+        {GIFT_ORDER.map((day, i) => (
           <Gift
             key={day}
             design={GIFT_DESIGNS[day]}
             state={ctrl.stateOf(day)}
             unwrapping={unwrapping === day}
             shaking={ctrl.shakingDay === day}
+            grand={i === GIFT_ORDER.length - 1}
             onClick={() => onGift(day)}
           />
         ))}

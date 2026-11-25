@@ -56,11 +56,11 @@ export function geometry(w: number, h: number): Geometry {
     w,
     h,
     unit: Math.min(w, h) / 420,
-    world: { minX: -w * 0.7, maxX: w * 1.7, minY: -h * 0.6, maxY: h },
+    // The ceiling is the top of the view, so ornaments floated upwards come to
+    // rest along it — and the ones in the middle settle around the star.
+    world: { minX: -w * 0.7, maxX: w * 1.7, minY: 0, maxY: h },
     tiers,
-    // A glowing basket on the floor below the tree: ornaments resting on the
-    // bottom edge in the middle are inside it.
-    zone: { x: cx, y: h - Math.min(w, h) * 0.15 * 0.7, r: Math.min(w, h) * 0.15 },
+    zone: { x: cx, y: Math.min(tiers[0][0].y - 8, Math.min(w, h) * 0.16 * 0.85), r: Math.min(w, h) * 0.16 },
   };
 }
 

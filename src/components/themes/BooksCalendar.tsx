@@ -59,15 +59,16 @@ export default function BooksCalendar({ ctrl }: { ctrl: CalendarController }) {
             {book.bands.map((b, i) => (
               <span key={i} className="book-band" style={{ ['--at' as string]: `${b}%` }} />
             ))}
-            <span className="book-title">{book.title}</span>
-            {book.motif !== 'none' && book.orientation !== 'flat' && (
+            {book.showMotif ? (
               <span className="book-motif">
                 <MotifArt motif={book.motif} color={book.ink} />
               </span>
+            ) : (
+              <span className="book-title">{book.title}</span>
             )}
           </>
         )}
-        {book.day && <span className={`book-num book-num--${book.numberSide}`}>{book.day}</span>}
+        {book.day && <span className="book-num">{book.day}</span>}
         {solved && <StarIcon className="book-ribbon" />}
       </button>
     );

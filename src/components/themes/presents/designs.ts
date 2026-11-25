@@ -1,4 +1,5 @@
 import { TOTAL_DAYS } from '../../../lib/time';
+import { shuffle } from '../../../lib/random';
 
 /**
  * Procedurally generated (but deterministic) gift designs — the same day always
@@ -137,16 +138,21 @@ function makeDesign(day: number, paper: Paper): GiftDesign {
   };
 }
 
+/** The gifts are shuffled so today's present has to be found. */
+export const GIFT_ORDER = shuffle(rng(1712), Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1));
+
 function buildDesigns(): Record<number, GiftDesign> {
   const designs: Record<number, GiftDesign> = {};
   const r = rng(2026);
-  for (let day = 1; day <= TOTAL_DAYS; day++) {
+  GIFT_ORDER.forEach((day, pos) => {
     // Avoid repeating a paper next to or above itself in 3-, 4- and 5-column grids.
-    const neighbours = [day - 1, day - 3, day - 4, day - 5].map((d) => designs[d]?.paper.name);
+    const neighbours = [pos - 1, pos - 3, pos - 4, pos - 5]
+      .filter((p) => p >= 0)
+      .map((p) => designs[GIFT_ORDER[p]]?.paper.name);
     const options = [...PAPERS].sort(() => r() - 0.5);
     const paper = options.find((p) => !neighbours.includes(p.name)) ?? options[0];
     designs[day] = makeDesign(day, paper);
-  }
+  });
   return designs;
 }
 

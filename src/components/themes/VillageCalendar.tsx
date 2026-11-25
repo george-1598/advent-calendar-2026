@@ -161,6 +161,23 @@ export default function VillageCalendar({ ctrl }: { ctrl: CalendarController }) 
             </g>
           ))}
 
+          {/* Number plaques under the sills of numbered windows, drawn over the snow so none get buried */}
+          {HOUSES.flatMap((h) => h.windows)
+            .filter((w) => w.day !== null)
+            .map((w) => (
+              <g
+                key={w.id}
+                className={lit.has(w.id) ? 'v-plaque is-on' : 'v-plaque'}
+                style={{ ['--delay' as string]: `${wave ? Math.round(w.x * 1.4 + (w.y % 97)) : 0}ms` }}
+                aria-hidden="true"
+              >
+                <rect x={w.x + w.w / 2 - 15} y={w.y + w.h + 8} width="30" height="19" rx="4" fill="#8E1F1A" stroke="#E7C77E" strokeWidth="1.5" />
+                <text x={w.x + w.w / 2} y={w.y + w.h + 22.5} textAnchor="middle" className="v-plaque-num">
+                  {w.day}
+                </text>
+              </g>
+            ))}
+
           {/* Christmas tree and snowman in the square */}
           <g transform="translate(140 776)">
             <path d="M0 -120 L36 -60 H20 L48 -10 H-48 L-20 -60 H-36 Z" fill="#174D33" />

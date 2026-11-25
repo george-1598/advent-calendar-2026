@@ -10,10 +10,12 @@ interface Props {
   state: DayState;
   unwrapping: boolean;
   shaking: boolean;
+  /** The last gift in the grid gets a bigger, full-width spot on phones. */
+  grand: boolean;
   onClick: () => void;
 }
 
-export default function Gift({ design, state, unwrapping, shaking, onClick }: Props) {
+export default function Gift({ design, state, unwrapping, shaking, grand, onClick }: Props) {
   const { day } = state;
   const style = {
     '--paper': design.paper.bg,
@@ -42,7 +44,7 @@ export default function Gift({ design, state, unwrapping, shaking, onClick }: Pr
     .join(' ');
 
   return (
-    <div className={day === 25 ? "gift-cell gift-cell--grand" : "gift-cell"}>
+    <div className={grand ? 'gift-cell gift-cell--grand' : 'gift-cell'}>
       <button className={classes} style={style} onClick={onClick} aria-label={`December ${day}${ariaStatus(state)}`}>
         <span className="gift-body">
           <span className="gift-box">

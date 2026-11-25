@@ -239,3 +239,32 @@ export function startWinterAmbience(): (() => void) | null {
     nodes.forEach((n) => n.stop(t + 1.5));
   };
 }
+
+/** Crinkly paper being torn open. */
+export function playUnwrap() {
+  const c = audio();
+  if (!c) return;
+  for (let i = 0; i < 7; i++) {
+    noiseBurst(c, {
+      at: Math.random() * 0.45,
+      duration: 0.04 + Math.random() * 0.06,
+      type: 'highpass',
+      from: 3000 + Math.random() * 3000,
+      to: 2500,
+      volume: 0.07 + Math.random() * 0.08,
+      attack: 0.003,
+    });
+  }
+  // The big rip.
+  noiseBurst(c, { at: 0.22, duration: 0.38, type: 'bandpass', from: 900, to: 3800, q: 1.4, volume: 0.22, attack: 0.03 });
+}
+
+/** Soft rustle of paper folding back around the box. */
+export function playWrap() {
+  const c = audio();
+  if (!c) return;
+  noiseBurst(c, { duration: 0.45, type: 'lowpass', from: 3000, to: 1100, q: 0.8, volume: 0.12, attack: 0.12 });
+  for (let i = 0; i < 4; i++) {
+    noiseBurst(c, { at: 0.1 + Math.random() * 0.3, duration: 0.05, type: 'highpass', from: 3500, to: 2800, volume: 0.04, attack: 0.003 });
+  }
+}

@@ -24,12 +24,11 @@ function initialBodies(geo: Geometry): Body[] {
       if (i < 5) {
         // A few start inside the view, near the sides.
         x = r() < 0.5 ? between(r, 0.08, 0.2) * w : between(r, 0.8, 0.92) * w;
-        y = between(r, 0.15, 0.75) * h;
+        y = between(r, 0.35, 0.9) * h;
       } else {
-        const side = Math.floor(r() * 3);
-        if (side === 0) [x, y] = [between(r, -0.62, -0.12) * w, between(r, -0.5, 0.9) * h];
-        else if (side === 1) [x, y] = [between(r, 1.12, 1.62) * w, between(r, -0.5, 0.9) * h];
-        else [x, y] = [between(r, -0.5, 1.5) * w, between(r, -0.55, -0.12) * h];
+        // Off-screen to the left or right.
+        y = between(r, 0.08, 0.95) * h;
+        x = r() < 0.5 ? between(r, -0.62, -0.12) * w : between(r, 1.12, 1.62) * w;
       }
       if (!overlaps(x, y, rad)) break;
     }
@@ -219,7 +218,7 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
   const onOrnament = (day: number) => {
     const b = bodies.current.find((x) => x.day === day)!;
     if (!b.inZone) {
-      ctrl.notify('Roll it into the glowing circle to take a closer look ✨');
+      ctrl.notify('Float it up to the glowing star to take a closer look ✨');
       return;
     }
     pick(b);
@@ -252,9 +251,10 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
     const b = bodies.current.find((x) => x.day === selected.day)!;
     b.held = false;
     b.x = geo.zone.x;
-    b.y = geo.zone.y - geo.zone.r * 0.4;
-    b.vx = (Math.random() - 0.5) * 240;
-    b.vy = -260;
+    b.x = geo.zone.x + (Math.random() < 0.5 ? -1 : 1) * geo.zone.r * 1.3;
+    b.y = geo.zone.y + geo.zone.r * 0.6;
+    b.vx = (Math.random() - 0.5) * 120;
+    b.vy = 140;
     els.current[selected.day]?.classList.remove('is-held');
     setSelected(null);
   };
@@ -289,7 +289,7 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
   return (
     <div className="orn-wrap">
       <div className="orn-head">
-        <p className="theme-lead orn-lead">Roll today’s ornament into the light</p>
+        <p className="theme-lead orn-lead">Float today’s ornament up to the star</p>
         <SoundToggle />
       </div>
       <div
@@ -310,7 +310,7 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
             className={zoneCount > 0 ? 'orn-zone is-active' : 'orn-zone'}
             style={{ left: geo.zone.x - geo.zone.r, top: geo.zone.y - geo.zone.r, width: geo.zone.r * 2, height: geo.zone.r * 2 }}
           >
-            <span>{zoneCount > 0 ? 'Tap an ornament' : 'Roll one here'}</span>
+            <span>{zoneCount > 0 ? 'Tap an ornament' : 'Float one up to the star'}</span>
           </div>
         )}
         {geo &&
@@ -384,7 +384,9 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
         {ctrl.stateOf(todayDay).today ? 'Show me today’s ornament' : `Show me ornament ${todayDay}`}
       </button>
       <p className="orn-hint">
-        {tilt === 'on' ? 'Tilt your phone to roll the ornaments' : 'Drag anywhere on the tree (or use arrow keys) to tilt it'}
+        {tilt === 'on'
+          ? 'Tilt your phone back to float them up, and sideways to steer'
+          : 'Drag up, down or sideways on the tree (or use arrow keys) to tilt it'}
       </p>
     </div>
   );

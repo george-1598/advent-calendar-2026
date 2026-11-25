@@ -18,8 +18,11 @@ export interface BookSpec {
   gilt: boolean;
   lean: number;
   overlap: number;
+  /** Gilt bands near the top and bottom of the spine (never across the title or icon). */
   bands: number[];
   motif: Motif;
+  /** Spine shows a single centred icon instead of the title. */
+  showMotif: boolean;
   numberTop: number;
   numberSide: 'left' | 'right';
   title: string;
@@ -46,8 +49,8 @@ const PALETTE = [
 const TITLES = [
   'Noel', 'Holly', 'Snow', 'Frost', 'Yule', 'Carols', 'Tinsel', 'Stars', 'Mittens', 'Cocoa',
   'Ginger', 'Robin', 'Bells', 'Wreath', 'Winter', 'Embers', 'Sleigh', 'Candles', 'Pine', 'Velvet',
-  'Lanterns', 'Snowfall', 'Nutmeg', 'Garland', 'Reindeer', 'Wishes', 'Firelight', 'Cinnamon',
-  'Twilight', 'Ribbons', 'Icicles', 'Chestnuts', 'Joy', 'Peace', 'Angels', 'Evergreen', 'Fir', 'Gifts',
+  'Lights', 'Nutmeg', 'Garland', 'Wishes', 'Hearth', 'Ribbons', 'Icicles', 'Joy', 'Peace', 'Angels',
+  'Fir', 'Gifts', 'Elves', 'Cookies', 'Toys', 'Sugar', 'Glow', 'Dreams',
 ];
 
 const QUOTES = [
@@ -63,7 +66,7 @@ const QUOTES = [
   'Let it snow, let it snow, let it snow.',
 ];
 
-const MOTIFS: Motif[] = ['holly', 'tree', 'star', 'candle', 'bird', 'none', 'none'];
+const MOTIFS: Motif[] = ['holly', 'tree', 'star', 'candle', 'bird'];
 const DECOYS = 13;
 const COVER_DAYS = new Set([4, 11, 17, 23]);
 
@@ -88,8 +91,9 @@ function buildShelf(): ShelfItem[] {
       ...palette,
       lean: 0,
       overlap: r() < 0.45 ? between(r, 1, 3.5) : 0,
-      bands: [between(r, 6, 12), between(r, 84, 92), ...(r() < 0.5 ? [between(r, 66, 74)] : [])],
+      bands: [between(r, 4, 8), between(r, 92, 95)],
       motif: pick(r, MOTIFS),
+      showMotif: !cover && r() < 0.3,
       numberTop: between(r, 62, 76),
       numberSide: r() < 0.5 ? 'left' : 'right',
       title: titles[i % titles.length],
@@ -113,6 +117,7 @@ function buildShelf(): ShelfItem[] {
         b.width = between(sr, 13, 18); // thickness when lying down
         b.height = between(sr, 62, 78); // length
         b.overlap = 0;
+        b.showMotif = false;
       });
       items.push({ kind: 'stack', books: stack });
       i += stack.length;
