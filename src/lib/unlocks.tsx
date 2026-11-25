@@ -47,6 +47,24 @@ interface UnlocksState {
 
 const UnlocksContext = createContext<UnlocksState | null>(null);
 const GUEST_KEY = 'advent-unlocks-guest';
+const TRIES_KEY = 'advent-theme-tries';
+
+/** Items opened in each theme while hunting its key, and when the hunt began (kept on this device). */
+type Tries = Partial<Record<ThemeId, { count: number; startedAt: string }>>;
+const readTries = (k: string): Tries => {
+  try {
+    return JSON.parse(localStorage.getItem(k) ?? '{}') as Tries;
+  } catch {
+    return {};
+  }
+};
+const writeTries = (k: string, t: Tries) => {
+  try {
+    localStorage.setItem(k, JSON.stringify(t));
+  } catch {
+    // ignore
+  }
+};
 
 export function UnlocksProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
@@ -80,10 +98,16 @@ export function UnlocksProvider({ children }: { children: ReactNode }) {
     };
   }, [userId]);
 
+  const triesKey = `${TRIES_KEY}:${userId ?? 'guest'}`;
+
   const persist = useCallback(
-    async (theme: ThemeId) => {
+    async (theme: ThemeId, hunt?: { count: number; startedAt: string }) => {
       if (userId) {
-        await supabase.rpc('unlock_theme', { p_theme: theme });
+        await supabase.rpc('unlock_theme', {
+          p_theme: theme,
+          p_attempts: hunt?.count ?? null,
+          p_started_at: hunt?.startedAt ?? null,
+        });
       } else {
         setUnlocked((prev) => {
           try {
@@ -115,18 +139,25 @@ export function UnlocksProvider({ children }: { children: ReactNode }) {
 
   const found = useCallback(
     (theme: ThemeId, day: number, helperOn = false): FoundResult => {
-      if (KEY_DAYS[theme] !== day || !keyActive(theme)) return 'none';
+      if (!keyActive(theme)) return 'none';
+      // Count every item opened while hunting this theme's key (for the admin stats).
+      const tries = readTries(triesKey);
+      const hunt = tries[theme] ?? { count: 0, startedAt: new Date().toISOString() };
+      hunt.count += 1;
+      tries[theme] = hunt;
+      writeTries(triesKey, tries);
+      if (KEY_DAYS[theme] !== day) return 'none';
       if (helperOn) return 'blocked';
       const next = nextTheme(theme)!;
       setUnlocked((prev) => new Set(prev).add(next));
-      void persist(next);
+      void persist(next, hunt);
       window.setTimeout(() => {
         playChime();
         setJustUnlocked(next);
       }, 700);
       return 'unlocked';
     },
-    [keyActive, persist],
+    [keyActive, persist, triesKey],
   );
 
   const unlockAll = useCallback(async () => {
@@ -139,6 +170,7 @@ export function UnlocksProvider({ children }: { children: ReactNode }) {
   const lockAll = useCallback(async () => {
     setUnlocked(new Set(['classic']));
     setJustUnlocked(null);
+    writeTries(triesKey, {});
     if (userId) {
       await supabase.rpc('reset_theme_unlocks');
     } else {
@@ -148,7 +180,7 @@ export function UnlocksProvider({ children }: { children: ReactNode }) {
         // ignore
       }
     }
-  }, [userId]);
+  }, [userId, triesKey]);
 
   return (
     <UnlocksContext.Provider

@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { useUnlocks } from './unlocks';
+import { useAuth } from './auth';
+import { supabase } from './supabase';
 
 export type ThemeId = 'classic' | 'presents' | 'carousel' | 'books' | 'scratch' | 'village' | 'ornaments' | 'mailroom' | 'crackers' | 'musicbox';
 
@@ -100,6 +102,13 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const setTheme = (t: ThemeId) => {
     if (devOverride || isUnlocked(t)) setChosen(t);
   };
+
+  // Presence for the admin dashboard: last seen + current theme.
+  const { session } = useAuth();
+  const signedIn = Boolean(session?.user?.id);
+  useEffect(() => {
+    if (signedIn) void supabase.rpc('touch_presence', { p_theme: theme });
+  }, [signedIn, theme]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;

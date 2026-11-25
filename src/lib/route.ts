@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
  *   #/          → the calendar
  *   #/day/7     → the page for December 7
  */
-export type Route = { name: 'home' } | { name: 'day'; day: number };
+export type AdminTab = 'players' | 'quests';
+export type Route = { name: 'home' } | { name: 'day'; day: number } | { name: 'admin'; tab: AdminTab };
 
 const ROUTE_EVENT = 'advent-route';
 const COLOR_KEY = 'advent-day-color';
@@ -16,6 +17,8 @@ export function parseRoute(hash = window.location.hash): Route {
     const day = Number(m[1]);
     if (day >= 1 && day <= 25) return { name: 'day', day };
   }
+  const a = hash.match(/^#\/admin(?:\/(players|quests))?$/);
+  if (a) return { name: 'admin', tab: (a[1] as AdminTab | undefined) ?? 'players' };
   return { name: 'home' };
 }
 
@@ -83,4 +86,13 @@ export function goHome() {
 export function savedScroll(): number | null {
   const y = (history.state as HistoryState | null)?.scrollY;
   return typeof y === 'number' ? y : null;
+}
+
+/** Open an admin tab (replaces the entry when switching tabs). */
+export function openAdmin(tab: AdminTab = 'players') {
+  const inAdmin = parseRoute().name === 'admin';
+  if (inAdmin) history.replaceState({}, '', `#/admin/${tab}`);
+  else history.pushState({}, '', `#/admin/${tab}`);
+  window.dispatchEvent(new Event(ROUTE_EVENT));
+  window.scrollTo(0, 0);
 }

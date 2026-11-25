@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import DayPage from './components/DayPage';
-import { goHome, savedScroll, useRoute } from './lib/route';
+import { goHome, openAdmin, savedScroll, useRoute } from './lib/route';
+import AdminPage from './components/admin/AdminPage';
 import ThemePicker from './components/ThemePicker';
 import UnlockCelebration from './components/UnlockCelebration';
 import Calendar from './components/Calendar';
@@ -37,7 +38,7 @@ export default function App() {
   const closePicker = useCallback(() => setPickerOpen(false), []);
 
   const navigate = (next: View) => {
-    if (route.name === 'day') goHome();
+    if (route.name !== 'home') goHome();
     setView(next);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -46,7 +47,7 @@ export default function App() {
     <>
       <header className="header">
         {session ? (
-          <nav className="nav" aria-label="Main">
+          <nav className={profile?.is_admin ? 'nav nav--admin' : 'nav'} aria-label="Main">
             {NAV.map((item) => (
               <button
                 key={item.id}
@@ -59,6 +60,11 @@ export default function App() {
             <button onClick={() => setPickerOpen(true)} aria-haspopup="dialog">
               Theme
             </button>
+            {profile?.is_admin && (
+              <button aria-current={route.name === 'admin' ? 'page' : undefined} onClick={() => openAdmin()}>
+                Admin
+              </button>
+            )}
           </nav>
         ) : (
           <div className="nav nav--plain">Advent Calendar 2026</div>
@@ -70,7 +76,9 @@ export default function App() {
           <LoginView />
         ) : (
           <>
-            {route.name === 'day' ? (
+            {route.name === 'admin' ? (
+              <AdminPage tab={route.tab} />
+            ) : route.name === 'day' ? (
               <DayPage day={route.day} />
             ) : (
               view === 'calendar' && <Calendar onNavigate={navigate} />

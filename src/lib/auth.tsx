@@ -50,7 +50,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [userId]);
 
-  return <AuthContext.Provider value={{ session, profile, loading }}>{children}</AuthContext.Provider>;
+  // Local development only: ?nologin&admin previews the admin pages.
+  const devProfile =
+    import.meta.env.DEV && new URLSearchParams(window.location.search).has('admin')
+      ? { id: 'dev', display_name: 'Dev', is_admin: true }
+      : null;
+
+  return (
+    <AuthContext.Provider value={{ session, profile: profile ?? devProfile, loading }}>{children}</AuthContext.Provider>
+  );
 }
 
 export const useAuth = () => useContext(AuthContext);

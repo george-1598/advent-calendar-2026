@@ -711,3 +711,85 @@ h1, h2, p { margin: 0; }
   font-weight: 500;
 }
 .day-pager button:hover { border-color: var(--accent); color: var(--accent); }
+
+/* =================================================================
+   Admin
+   ================================================================= */
+.nav--admin button { padding: 9px 6px; letter-spacing: 0.06em; font-size: 11px; }
+.admin-page { display: grid; gap: 16px; }
+.admin-tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--surface); border-radius: 12px; padding: 4px; }
+.admin-tabs button { padding: 11px; border-radius: 9px; font-weight: 600; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.admin-tabs button[aria-selected='true'] { background: var(--accent); color: var(--page-bg); }
+.admin-stack { display: grid; gap: 12px; }
+.admin-muted { color: var(--text-muted); font-size: 14px; line-height: 1.5; }
+.admin-kpis { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+@media (min-width: 600px) { .admin-kpis { grid-template-columns: repeat(4, 1fr); } }
+.admin-kpi { display: grid; gap: 2px; padding: 14px; border-radius: 12px; background: var(--surface); }
+.admin-kpi span { font-size: 26px; font-weight: 600; color: var(--count-color); }
+.admin-kpi small { font-size: 12px; color: var(--text-muted); }
+.admin-link { justify-self: start; color: var(--accent); font-size: 13px; text-decoration: underline; text-underline-offset: 3px; }
+.admin-link--danger { color: #d2443a; }
+.admin-card { border-radius: 14px; background: #fffdf8; color: var(--ink); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); overflow: hidden; }
+.admin-player-head, .admin-quest-head { width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 16px; text-align: left; }
+.admin-avatar { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: var(--coral); color: #fff; font-weight: 600; font-size: 18px; }
+.admin-player-id { flex: 1; display: grid; gap: 2px; min-width: 0; }
+.admin-player-id small, .admin-quest-title small { color: #8a847c; font-size: 12.5px; }
+.admin-badge { font-style: normal; font-size: 10px; padding: 1px 6px; border-radius: 6px; background: var(--teal); color: #fff; text-transform: uppercase; letter-spacing: 0.08em; vertical-align: 2px; }
+.admin-player-score { display: grid; justify-items: end; }
+.admin-player-score strong { font-size: 22px; }
+.admin-player-score small { font-size: 11px; color: #8a847c; }
+.admin-days { display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px; padding: 0 16px 14px; }
+.admin-day { aspect-ratio: 1; display: grid; place-items: center; border-radius: 5px; font-size: 10px; font-weight: 600; background: #efe9de; color: #b3aca2; }
+.admin-day.is-open { background: #e3ddd2; color: #6f6a64; }
+.admin-day.is-tried { background: #ffd9a8; color: #8a4a00; }
+.admin-day.is-solved { background: #2e8b57; color: #fff; }
+.admin-detail { display: grid; gap: 12px; padding: 4px 16px 18px; border-top: 1px solid #eee5d8; }
+.admin-detail h3 { font-size: 13px; letter-spacing: 0.12em; text-transform: uppercase; color: #8a847c; margin-top: 6px; }
+.admin-stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 14px; margin: 10px 0 0; }
+.admin-stats div { display: grid; }
+.admin-stats dt { font-size: 11px; color: #8a847c; }
+.admin-stats dd { margin: 0; font-weight: 600; font-size: 15px; overflow-wrap: anywhere; }
+.admin-chain { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.admin-chain li { display: grid; padding: 8px 10px; border-radius: 8px; background: #f4f0e8; color: #9a948b; font-size: 13px; }
+.admin-chain li.is-done { background: #e6f2ea; color: #2c5f40; }
+.admin-chain li strong { color: inherit; }
+.admin-guesses { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; max-height: 280px; overflow-y: auto; }
+.admin-guesses li { display: grid; grid-template-columns: auto 1fr auto auto; gap: 8px; align-items: center; padding: 6px 8px; border-radius: 6px; font-size: 13px; background: #fbeeee; }
+.admin-guesses li.is-right { background: #e6f2ea; }
+.admin-guess-day { font-weight: 600; color: #8a847c; }
+.admin-guess-text { overflow-wrap: anywhere; }
+.admin-guesses small { color: #9a948b; font-size: 11px; }
+.admin-quest-day { flex: none; width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; background: #efe9de; font-weight: 600; font-size: 17px; }
+.admin-quest.is-ready .admin-quest-day { background: var(--teal); color: #fff; }
+.admin-quest.is-live .admin-quest-day { background: var(--coral); color: #fff; }
+.admin-quest-title { flex: 1; display: grid; gap: 2px; min-width: 0; }
+.admin-status { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 3px 8px; border-radius: 6px; background: #efe9de; color: #8a847c; }
+.admin-status--ready { background: #dcefe9; color: var(--teal); }
+.admin-status--live { background: #ffe1dc; color: #b3261e; }
+.admin-editor { display: grid; gap: 12px; padding: 4px 16px 18px; border-top: 1px solid #eee5d8; }
+.admin-editor label { display: grid; gap: 5px; }
+.admin-editor label > span, .admin-overrides legend { font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #6f6a64; }
+.admin-editor small { font-size: 12px; color: #9a948b; }
+.admin-editor input, .admin-editor textarea, .admin-editor select {
+  width: 100%;
+  min-width: 0;
+  font: inherit;
+  font-size: 16px;
+  padding: 10px 12px;
+  border: 1.5px solid #e2d9ca;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--ink);
+  resize: vertical;
+}
+.admin-editor input:focus, .admin-editor textarea:focus, .admin-editor select:focus { outline: none; border-color: var(--teal); }
+.admin-row { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 10px; }
+.admin-overrides { display: grid; gap: 8px; border: 1.5px dashed #e2d9ca; border-radius: 10px; padding: 10px 12px 12px; margin: 0; }
+.admin-overrides label { grid-template-columns: 90px minmax(0, 1fr); align-items: center; }
+.admin-overrides label > span { text-transform: none; letter-spacing: 0; font-size: 14px; }
+.admin-warning { background: #fff4e0; color: #8a4a00; padding: 10px 12px; border-radius: 10px; font-size: 14px; }
+.admin-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.admin-save { padding: 11px 26px; border-radius: 10px; background: var(--teal); color: #fff; font-weight: 600; }
+.admin-save:disabled { opacity: 0.6; }
+.admin-danger { padding: 6px 12px; border-radius: 8px; background: #d2443a; color: #fff; font-weight: 600; }
+.admin-confirm { font-size: 13px; color: #8a4a00; }
