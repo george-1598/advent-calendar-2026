@@ -37,6 +37,8 @@ interface Form {
 
 const KINDS = [{ id: 'riddle', label: 'Riddle / question (type the answer)' }];
 const DEFAULT = 'default';
+/** Up to this many players, show them all as buttons; beyond it, show a search box. */
+const SHOW_ALL_UP_TO = 6;
 
 const toForm = (q: QuestFields | undefined, fallbackKind = ''): Form => ({
   title: q?.title ?? '',
@@ -123,8 +125,19 @@ function QuestEditor({
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [query, setQuery] = useState('');
 
   const isDefault = target === DEFAULT;
+  const choose = (id: string) => {
+    setTarget(id);
+    setMessage(null);
+    setQuery('');
+  };
+  // Few players: all as buttons. Many: only customised ones (+ the current one), and a search box.
+  const compact = players.length > SHOW_ALL_UP_TO;
+  const chipPlayers = compact ? players.filter((p) => overrideOf(p.id) || p.id === target) : players;
+  const q = query.trim().toLowerCase();
+  const matches = q ? players.filter((p) => `${p.name} ${p.email}`.toLowerCase().includes(q)).slice(0, 8) : [];
   const form = drafts[target] ?? toForm(isDefault ? quest : overrideOf(target));
   const def = drafts[DEFAULT];
   const set = (k: keyof Form, v: string) => setDrafts((d) => ({ ...d, [target]: { ...form, [k]: v } }));
@@ -214,7 +227,7 @@ function QuestEditor({
           >
             Everyone (default)
           </button>
-          {players.map((p) => (
+          {chipPlayers.map((p) => (
             <button
               key={p.id}
               type="button"
@@ -231,6 +244,31 @@ function QuestEditor({
             </button>
           ))}
         </div>
+        {compact && (
+          <div className="admin-player-search">
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={`Find a player by name or email (${players.length} players)`}
+              aria-label="Find a player to customise"
+            />
+            {q && (
+              <ul className="admin-player-results" role="listbox">
+                {matches.length === 0 && <li className="admin-muted">No players match “{query}”.</li>}
+                {matches.map((p) => (
+                  <li key={p.id}>
+                    <button type="button" role="option" aria-selected={target === p.id} onClick={() => choose(p.id)}>
+                      <strong>{p.name}</strong>
+                      <small>{p.email}</small>
+                      {overrideOf(p.id) && <em>✎ custom</em>}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
       {isDefault ? (
