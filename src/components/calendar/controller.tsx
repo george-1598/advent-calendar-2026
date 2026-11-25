@@ -51,6 +51,9 @@ export function useCalendarController() {
     setToast(`Day ${day} opens in ${formatCountdown(unlockAt(day) - now)}`);
   };
 
+  /** Show a short message in the toast. */
+  const notify = useCallback((message: string) => setToast(message), []);
+
   const open = useCallback((day: number, color: string) => setOpenDay({ day, color }), []);
   const close = useCallback(() => setOpenDay(null), []);
 
@@ -67,6 +70,7 @@ export function useCalendarController() {
     now,
     stateOf,
     rejectLocked,
+    notify,
     open,
     shakingDay,
     /** Day whose modal is currently open, or null. */

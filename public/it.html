@@ -1,0 +1,58 @@
+<body style="margin:0;background:#888">
+<iframe id="f" style="width:390px;height:844px;border:0;display:block"></iframe>
+<script>
+const p = new URLSearchParams(location.search), test = p.get('t');
+const f = document.getElementById('f');
+const theme = test.split('-')[0];
+f.src = './?nologin&date=2026-12-07T10:00:00&theme=' + theme;
+const wait = ms => new Promise(r => setTimeout(r, ms));
+f.onload = async () => {
+  await wait(1500);
+  const d = f.contentDocument, w = f.contentWindow;
+  const finish = () => d.getAnimations().forEach(a => { try { a.finish(); } catch {} });
+  const pe = (el, type, x, y, extra = {}) => el.dispatchEvent(new w.PointerEvent(type, { bubbles: true, clientX: x, clientY: y, pointerId: 1, button: 0, buttons: type === 'pointerup' ? 0 : 1, isPrimary: true, ...extra }));
+  w.HTMLElement.prototype.setPointerCapture = () => {};
+  w.Element.prototype.setPointerCapture = () => {};
+  if (theme === 'books') {
+    const b = [...d.querySelectorAll('.book')].find(x => x.querySelector('.book-num')?.textContent === '7');
+    b.scrollIntoView({ block: 'center' }); await wait(100);
+    b.click();
+    if (test === 'books-mid') { await wait(330); d.getAnimations().forEach(a => a.pause()); return; }
+    await wait(1500); finish();
+    if (test === 'books-final') { for (let i = 0; i < 2; i++) { d.querySelectorAll('.reader-btn')[1].click(); await wait(60); } await wait(100); finish(); }
+    if (test === 'books-flip') { d.querySelectorAll('.reader-btn')[1].click(); await wait(400); d.getAnimations().forEach(a => a.pause()); }
+  }
+  if (theme === 'scratch') {
+    const order = [...d.querySelectorAll('.sc-tile')];
+    order[4].click(); await wait(300); finish();
+    const c = d.querySelector('.sc-foil'); const r = c.getBoundingClientRect();
+    const rows = test === 'scratch-full' ? 9 : 3;
+    pe(c, 'pointerdown', r.left + 20, r.top + 30);
+    for (let row = 0; row < rows; row++) for (let i = 0; i <= 12; i++) {
+      const x = r.left + 15 + (row % 2 ? 12 - i : i) * (r.width - 30) / 12, y = r.top + 30 + row * (r.height - 50) / Math.max(1, rows - 1) * (test === 'scratch-full' ? 1 : 0.35);
+      pe(c, 'pointermove', x, y);
+    }
+    pe(c, 'pointerup', r.left, r.top);
+    await wait(test === 'scratch-full' ? 350 : 50);
+    if (test === 'scratch-full') d.getAnimations().forEach(a => { a.pause(); a.currentTime = 300; });
+  }
+  if (theme === 'village') {
+    const wins = [...d.querySelectorAll('.v-window')];
+    for (const i of [2, 5, 8, 11, 14, 17, 20, 23, 26, 29]) { wins[i].dispatchEvent(new w.MouseEvent('click', { bubbles: true })); }
+    await wait(1200); finish();
+  }
+  if (theme === 'ornaments') {
+    const st = d.querySelector('.orn-stage'); st.scrollIntoView({ block: 'center' }); await wait(100);
+    const r = st.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + 40;
+    pe(st, 'pointerdown', cx, cy);
+    pe(st, 'pointermove', cx + (test === 'ornaments-left' ? -60 : 0), cy + 70);
+    await wait(test === 'ornaments-left' ? 900 : 2200);
+    if (test === 'ornaments-pick') {
+      pe(st, 'pointerup', cx, cy); await wait(300);
+      const o = [...d.querySelectorAll('.orn.is-in-zone')][0];
+      if (o) { o.click(); await wait(900); finish(); } else { d.body.insertAdjacentHTML('beforeend', '<div style="position:fixed;top:0;left:0;background:red;color:#fff;font:20px sans-serif;z-index:99">NO ORNAMENT IN ZONE</div>'); }
+    }
+    d.getAnimations().forEach(a => a.pause());
+  }
+};
+</script></body>

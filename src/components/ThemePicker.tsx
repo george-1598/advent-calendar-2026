@@ -20,6 +20,58 @@ function Preview({ id }: { id: ThemeId }) {
       </span>
     );
   }
+  if (id === 'books') {
+    return (
+      <span className="tp tp--books">
+        {['#A8322D', '#2F5E3F', '#22355A', '#C28A2C', '#7C1F1D', '#2C5F67', '#5B2E4A', '#A8322D'].map((c, i) => (
+          <span key={i} className="tp-book" style={{ background: c, height: [44, 52, 40, 56, 48, 42, 54, 46][i] }} />
+        ))}
+      </span>
+    );
+  }
+  if (id === 'scratch') {
+    return (
+      <span className="tp tp--scratch">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <span key={i} className={i === 4 ? 'tp-card tp-card--open' : 'tp-card'}>
+            {i === 4 ? '7' : ''}
+          </span>
+        ))}
+      </span>
+    );
+  }
+  if (id === 'village') {
+    return (
+      <span className="tp tp--village">
+        {[
+          { left: 8, h: 34, c: '#5E84B4' },
+          { left: 36, h: 44, c: '#B4453A' },
+          { left: 64, h: 30, c: '#4F7A6F' },
+        ].map((h, i) => (
+          <span key={i} className="tp-house" style={{ left: h.left, height: h.h, background: h.c }}>
+            <span className={i === 1 ? 'tp-win tp-win--on' : 'tp-win'} style={{ left: 4, top: 8 }} />
+            <span className={i === 0 ? 'tp-win tp-win--on' : 'tp-win'} style={{ left: 15, top: 8 }} />
+            <span className="tp-win" style={{ left: 9, top: 22 }} />
+          </span>
+        ))}
+      </span>
+    );
+  }
+  if (id === 'ornaments') {
+    return (
+      <span className="tp tp--ornaments">
+        <span className="tp-tree" />
+        {[
+          { l: 6, t: 14, c: '#C8102E' },
+          { l: 78, t: 30, c: '#D4A017' },
+          { l: 44, t: 56, c: '#1D4E9E' },
+          { l: 86, t: 6, c: '#6B2C91' },
+        ].map((o, i) => (
+          <span key={i} className="tp-orn" style={{ left: o.l, top: o.t, background: o.c }} />
+        ))}
+      </span>
+    );
+  }
   return (
     <span className="tp tp--carousel">
       <span className="tp-drum">
