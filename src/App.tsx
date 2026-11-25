@@ -3,7 +3,7 @@ import Calendar from './components/Calendar';
 import BadgesView from './components/BadgesView';
 import AboutView from './components/AboutView';
 import LoginView from './components/LoginView';
-import { useAuth } from './lib/auth';
+import { signOut, useAuth } from './lib/auth';
 
 export type View = 'calendar' | 'badges' | 'about';
 
@@ -14,7 +14,12 @@ const NAV: { id: View; label: string }[] = [
 ];
 
 export default function App() {
-  const { session, loading } = useAuth();
+  const auth = useAuth();
+  const { profile, loading } = auth;
+  // Local development only: add ?nologin to view the calendar without signing in.
+  // `import.meta.env.DEV` is false in production builds, so this never ships.
+  const devPreview = import.meta.env.DEV && new URLSearchParams(window.location.search).has('nologin');
+  const session = auth.session ?? (devPreview ? ({} as NonNullable<typeof auth.session>) : null);
   const [view, setView] = useState<View>('calendar');
 
   const navigate = (next: View) => {
@@ -58,6 +63,17 @@ export default function App() {
         <div className="footer-rule" />
         <p className="footer-small">Made with love for</p>
         <p className="footer-big">Christmas 2026</p>
+        {session && (
+          <div className="account">
+            <span className="account-name">
+              Signed in as <strong>{profile?.display_name ?? '…'}</strong>
+              {profile?.is_admin && <span className="admin-tag">Admin</span>}
+            </span>
+            <button className="btn-logout" onClick={signOut}>
+              Log out
+            </button>
+          </div>
+        )}
       </footer>
     </>
   );

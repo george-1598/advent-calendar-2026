@@ -1,5 +1,5 @@
 import { TOTAL_DAYS } from '../lib/time';
-import { colorOfDay } from '../data/layout';
+import { dayColorStyle } from '../data/layout';
 import { useProgress } from '../lib/progress';
 import { StarIcon } from './icons';
 
@@ -20,7 +20,8 @@ export default function BadgesView() {
           return (
             <li
               key={day}
-              className={`badge ${earned ? `badge--${colorOfDay(day)}` : 'badge--empty'}`}
+              className={`badge ${earned ? 'day-color' : 'badge--empty'}`}
+              style={earned ? dayColorStyle(day) : undefined}
               aria-label={`Day ${day}${earned ? ', earned' : ''}`}
             >
               {earned && p?.badge_letter ? (

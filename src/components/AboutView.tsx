@@ -1,5 +1,3 @@
-import { signOut, useAuth } from '../lib/auth';
-
 const STEPS = [
   {
     title: 'A new door every day',
@@ -20,7 +18,6 @@ const STEPS = [
 ];
 
 export default function AboutView() {
-  const { profile } = useAuth();
   return (
     <section className="page">
       <h1 className="page-title">How it works</h1>
@@ -35,15 +32,6 @@ export default function AboutView() {
           </li>
         ))}
       </ol>
-      <div className="account">
-        <span>
-          Signed in as <strong>{profile?.display_name ?? '…'}</strong>
-          {profile?.is_admin && <span className="admin-tag">Admin</span>}
-        </span>
-        <button className="btn-link" onClick={signOut}>
-          Sign out
-        </button>
-      </div>
     </section>
   );
 }

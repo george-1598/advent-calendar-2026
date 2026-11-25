@@ -36,8 +36,8 @@ export function formatCountdown(ms: number): string {
   const h = Math.floor((total % 86_400) / 3600);
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
-  if (d > 0) return `${d}d ${h}h ${pad(m)}m`;
-  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+  if (d > 0) return `${d}d ${pad(h)}h ${pad(m)}m ${pad(s)}s`;
+  return `${pad(h)}h ${pad(m)}m ${pad(s)}s`;
 }
 
 /**

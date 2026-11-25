@@ -1,26 +1,70 @@
+import type { CSSProperties } from 'react';
+
 export type TileColor = 'sage' | 'coral' | 'teal';
 
-export type LayoutItem =
-  | { kind: 'day'; day: number; color: TileColor }
-  | { kind: 'intro' | 'logo' | 'countdown' | 'badges' | 'howto' };
+/** Colour of a day at each breakpoint: [phone 3 cols, tablet 4 cols, desktop 6 cols]. */
+type DayColors = [TileColor, TileColor, TileColor];
 
-const d = (day: number, color: TileColor): LayoutItem => ({ kind: 'day', day, color });
+export type LayoutItem =
+  | { kind: 'day'; day: number }
+  | { kind: 'intro' | 'logo' | 'badges' | 'howto' };
+
+const d = (day: number): LayoutItem => ({ kind: 'day', day });
 
 /**
- * Tile order for the calendar grid. The grid uses `grid-auto-flow: dense`, and
- * this order fills a perfect 6×6 (desktop), 4×9 (tablet) and 3×13 (phone) grid.
- * If you reorder, keep the special tiles roughly where they are.
+ * Tile order for the calendar grid (`grid-auto-flow: dense`). With the spans in
+ * styles.css this fills complete rows at every breakpoint: 3×11, 4×9 and 6×6.
  */
 export const LAYOUT: LayoutItem[] = [
-  { kind: 'intro' }, d(11, 'sage'), d(5, 'sage'), d(2, 'sage'), d(19, 'sage'),
-  d(16, 'coral'), { kind: 'logo' }, d(9, 'teal'),
-  d(21, 'sage'), d(7, 'sage'), d(12, 'coral'), d(17, 'sage'), d(10, 'teal'), d(4, 'coral'),
-  d(15, 'sage'), { kind: 'countdown' }, d(8, 'coral'), { kind: 'howto' },
-  d(18, 'teal'), { kind: 'badges' }, d(1, 'sage'), d(22, 'teal'), d(3, 'sage'), d(23, 'sage'),
-  d(14, 'teal'), d(13, 'sage'), d(24, 'coral'), d(25, 'teal'), d(20, 'coral'), d(6, 'teal'),
+  { kind: 'intro' },
+  d(11), d(5), d(2), d(19), d(16), d(9),
+  { kind: 'logo' },
+  d(21), d(7), d(12), d(17), d(10), d(4), d(15), d(8), d(18),
+  { kind: 'howto' },
+  d(1), d(22), d(3),
+  { kind: 'badges' },
+  d(23), d(14), d(13), d(24), d(25), d(20), d(6),
 ];
 
-export function colorOfDay(day: number): TileColor {
-  const item = LAYOUT.find((i) => i.kind === 'day' && i.day === day);
-  return item && item.kind === 'day' ? item.color : 'teal';
+/**
+ * Because tiles neighbour each other differently at each breakpoint, no single
+ * colouring avoids same-colour neighbours everywhere. Each breakpoint gets its
+ * own colouring (generated so no two touching days share a colour).
+ */
+const DAY_COLORS: Record<number, DayColors> = {
+  1: ['teal', 'teal', 'sage'],
+  2: ['sage', 'coral', 'teal'],
+  3: ['teal', 'coral', 'teal'],
+  4: ['sage', 'sage', 'coral'],
+  5: ['coral', 'teal', 'coral'],
+  6: ['teal', 'sage', 'teal'],
+  7: ['teal', 'coral', 'teal'],
+  8: ['sage', 'sage', 'sage'],
+  9: ['coral', 'coral', 'coral'],
+  10: ['coral', 'teal', 'sage'],
+  11: ['teal', 'coral', 'sage'],
+  12: ['coral', 'sage', 'sage'],
+  13: ['sage', 'teal', 'sage'],
+  14: ['coral', 'sage', 'coral'],
+  15: ['teal', 'coral', 'teal'],
+  16: ['sage', 'teal', 'teal'],
+  17: ['sage', 'coral', 'teal'],
+  18: ['teal', 'coral', 'coral'],
+  19: ['coral', 'sage', 'sage'],
+  20: ['coral', 'teal', 'sage'],
+  21: ['coral', 'teal', 'coral'],
+  22: ['sage', 'teal', 'sage'],
+  23: ['teal', 'coral', 'coral'],
+  24: ['coral', 'teal', 'teal'],
+  25: ['teal', 'sage', 'coral'],
+};
+
+/** CSS variables consumed by `.day-color` to pick the right colour per breakpoint. */
+export function dayColorStyle(day: number): CSSProperties {
+  const [phone, tablet, desktop] = DAY_COLORS[day];
+  return {
+    '--c-phone': `var(--${phone})`,
+    '--c-tablet': `var(--${tablet})`,
+    '--c-desktop': `var(--${desktop})`,
+  } as CSSProperties;
 }

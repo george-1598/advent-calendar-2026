@@ -1,18 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type MouseEvent } from 'react';
 import type { View } from '../App';
-import { LAYOUT, type TileColor } from '../data/layout';
+import { LAYOUT, dayColorStyle } from '../data/layout';
 import { useNow } from '../lib/useNow';
-import {
-  TOTAL_DAYS,
-  formatCountdown,
-  isToday,
-  isUnlocked,
-  nextUnlock,
-  unlockAt,
-} from '../lib/time';
+import { TOTAL_DAYS, formatCountdown, isToday, isUnlocked, unlockAt } from '../lib/time';
 import { useAuth } from '../lib/auth';
 import { useProgress } from '../lib/progress';
+import CountdownBanner from './CountdownBanner';
 import DayModal from './DayModal';
+import IntroSlider from './IntroSlider';
 import { LockIcon, StarIcon } from './icons';
 
 export default function Calendar({ onNavigate }: { onNavigate: (view: View) => void }) {
@@ -21,12 +16,7 @@ export default function Calendar({ onNavigate }: { onNavigate: (view: View) => v
   const { byDay, solvedCount } = useProgress();
   const isAdmin = Boolean(profile?.is_admin);
 
-  const INTRO_MESSAGES = [
-    profile ? `Hi ${profile.display_name}! Merry Christmas` : 'A Christmas advent calendar made with love',
-    '25 days · 25 quests · 25 surprises',
-    'Solve each day’s quest to unlock a real gift',
-  ];
-  const [openDay, setOpenDay] = useState<{ day: number; color: TileColor } | null>(null);
+  const [openDay, setOpenDay] = useState<{ day: number; color: string } | null>(null);
   const [shakingDay, setShakingDay] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -42,55 +32,39 @@ export default function Calendar({ onNavigate }: { onNavigate: (view: View) => v
     setToast(`Day ${day} opens in ${formatCountdown(unlockAt(day) - now)}`);
   };
 
+  // The tile's colour depends on the breakpoint, so read what's actually shown.
+  const openTile = (day: number, e: MouseEvent<HTMLButtonElement>) => {
+    setOpenDay({ day, color: getComputedStyle(e.currentTarget).backgroundColor });
+  };
+
   const closeModal = useCallback(() => setOpenDay(null), []);
 
-  const next = nextUnlock(now);
-  const introIndex = Math.floor(now / 4500) % INTRO_MESSAGES.length;
+  const introMessages = [
+    profile ? `Hi ${profile.display_name}! Merry Christmas` : 'A Christmas advent calendar made with love',
+    '25 days · 25 quests · 25 surprises',
+    'Swipe, solve, unlock a real gift',
+  ];
 
   return (
     <>
+      <CountdownBanner now={now} />
+
       <div className="grid-wrap">
         <div className="grid">
           {LAYOUT.map((item) => {
             switch (item.kind) {
               case 'intro':
                 return (
-                  <div key="intro" className="tile tile--ink span-intro intro">
-                    <p className="intro-text" key={introIndex}>
-                      {INTRO_MESSAGES[introIndex]}
-                    </p>
-                    <div className="dots" aria-hidden="true">
-                      {INTRO_MESSAGES.map((_, i) => (
-                        <span key={i} className={i === introIndex ? 'dot dot--on' : 'dot'} />
-                      ))}
-                    </div>
+                  <div key="intro" className="tile tile--ink span-intro">
+                    <IntroSlider messages={introMessages} />
                   </div>
                 );
 
               case 'logo':
                 return (
-                  <div key="logo" className="tile tile--paper span-wide logo">
+                  <div key="logo" className="tile tile--paper span-logo logo">
                     <span className="logo-script">Advent</span>
                     <span className="logo-sub">Calendar 2026</span>
-                  </div>
-                );
-
-              case 'countdown':
-                return (
-                  <div key="countdown" className="tile tile--paper span-wide countdown">
-                    {next ? (
-                      <>
-                        <span className="countdown-label">
-                          {next.day === 1 ? 'The first door opens in' : `Day ${next.day} opens in`}
-                        </span>
-                        <span className="countdown-value">{formatCountdown(next.at - now)}</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="countdown-label">All {TOTAL_DAYS} doors are open</span>
-                        <span className="countdown-value">Merry Christmas!</span>
-                      </>
-                    )}
                   </div>
                 );
 
@@ -101,7 +75,7 @@ export default function Calendar({ onNavigate }: { onNavigate: (view: View) => v
                     className="tile tile--ink tile--action"
                     onClick={() => onNavigate('badges')}
                   >
-                    <span className="action-label">My badges</span>
+                    <span className="action-label">Badges</span>
                     <span className="action-value">
                       {solvedCount}/{TOTAL_DAYS}
                     </span>
@@ -128,7 +102,7 @@ export default function Calendar({ onNavigate }: { onNavigate: (view: View) => v
                 const classes = [
                   'tile',
                   'tile--day',
-                  `tile--${item.color}`,
+                  'day-color',
                   canOpen ? 'is-open' : 'is-locked',
                   !unlocked && 'is-future',
                   today && !solved && 'is-today',
@@ -144,10 +118,9 @@ export default function Calendar({ onNavigate }: { onNavigate: (view: View) => v
                   <button
                     key={item.day}
                     className={classes}
+                    style={dayColorStyle(item.day)}
                     aria-label={`December ${item.day}${status}`}
-                    onClick={() =>
-                      canOpen ? setOpenDay({ day: item.day, color: item.color }) : handleLocked(item.day)
-                    }
+                    onClick={(e) => (canOpen ? openTile(item.day, e) : handleLocked(item.day))}
                   >
                     <span className="day-number">{item.day}</span>
                     {!unlocked && <LockIcon className="day-lock" />}

@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import type { TileColor } from '../data/layout';
 import { supabase } from '../lib/supabase';
 import { useProgress } from '../lib/progress';
 import { StarIcon } from './icons';
@@ -13,7 +12,8 @@ interface Quest {
 
 interface Props {
   day: number;
-  color: TileColor;
+  /** CSS colour of the tile that was tapped. */
+  color: string;
   onClose: () => void;
 }
 
@@ -82,7 +82,7 @@ export default function DayModal({ day, color, onClose }: Props) {
         aria-labelledby="day-title"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className={`modal-head tile--${color}`}>
+        <div className="modal-head" style={{ background: color }}>
           <span className="modal-kicker">December</span>
           <span className="modal-day">{day}</span>
           <button ref={closeRef} className="modal-close" aria-label="Close" onClick={onClose}>
@@ -107,7 +107,7 @@ export default function DayModal({ day, color, onClose }: Props) {
 
               {solved ? (
                 <div className="reward">
-                  <div className={`reward-badge badge--${color}`}>
+                  <div className="reward-badge" style={{ background: color }}>
                     {progress?.badge_letter ? (
                       <span className="reward-letter">{progress.badge_letter}</span>
                     ) : (
