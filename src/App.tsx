@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import ThemePicker from './components/ThemePicker';
 import Calendar from './components/Calendar';
 import BadgesView from './components/BadgesView';
 import AboutView from './components/AboutView';
@@ -21,6 +22,8 @@ export default function App() {
   const devPreview = import.meta.env.DEV && new URLSearchParams(window.location.search).has('nologin');
   const session = auth.session ?? (devPreview ? ({} as NonNullable<typeof auth.session>) : null);
   const [view, setView] = useState<View>('calendar');
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const closePicker = useCallback(() => setPickerOpen(false), []);
 
   const navigate = (next: View) => {
     setView(next);
@@ -41,6 +44,9 @@ export default function App() {
                 {item.label}
               </button>
             ))}
+            <button onClick={() => setPickerOpen(true)} aria-haspopup="dialog">
+              Theme
+            </button>
           </nav>
         ) : (
           <div className="nav nav--plain">Advent Calendar 2026</div>
@@ -75,6 +81,8 @@ export default function App() {
           </div>
         )}
       </footer>
+
+      {pickerOpen && <ThemePicker onClose={closePicker} />}
     </>
   );
 }

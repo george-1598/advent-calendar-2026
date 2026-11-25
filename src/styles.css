@@ -11,13 +11,26 @@
   --font: 'Jost', 'Futura', 'Avenir Next', system-ui, sans-serif;
   --script: 'Lobster', 'Brush Script MT', cursive;
   --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Theme tokens (classic defaults; other themes override in themes.css) */
+  --page-bg: var(--cream);
+  --surface: #ffffff;
+  --surface-2: var(--cream);
+  --text: var(--ink);
+  --text-soft: #666666;
+  --text-muted: var(--muted);
+  --header-bg: #ffffff;
+  --header-line: var(--line);
+  --nav-color: var(--coral);
+  --accent: var(--coral);
+  --count-color: var(--teal);
 }
 
 * { box-sizing: border-box; }
 html, body { margin: 0; }
 body {
-  background: var(--cream);
-  color: var(--ink);
+  background: var(--page-bg);
+  color: var(--text);
   font-family: var(--font);
   -webkit-font-smoothing: antialiased;
   -webkit-tap-highlight-color: transparent;
@@ -30,28 +43,28 @@ h1, h2, p { margin: 0; }
   position: sticky;
   top: 0;
   z-index: 10;
-  background: var(--paper);
+  background: var(--header-bg);
   padding-top: env(safe-area-inset-top, 0px);
-  box-shadow: 0 1px 0 var(--line);
+  box-shadow: 0 1px 0 var(--header-line);
 }
 .nav {
   max-width: 720px;
   margin: 0 auto;
   display: flex;
   justify-content: space-around;
-  padding: 12px 16px;
+  padding: 12px 8px;
 }
 .nav button {
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--coral);
-  padding: 9px 14px;
+  color: var(--nav-color);
+  padding: 9px 10px;
   border: 2px solid transparent;
   transition: border-color 0.2s;
 }
-.nav button[aria-current='page'] { border-color: var(--coral); }
+.nav button[aria-current='page'] { border-color: var(--nav-color); }
 
 /* ---------- Layout ---------- */
 .main {
@@ -248,7 +261,7 @@ h1, h2, p { margin: 0; }
   display: grid;
   justify-items: center;
   gap: 10px;
-  background: var(--paper);
+  background: var(--surface);
   padding: 16px 12px 14px;
   margin-bottom: 12px;
 }
@@ -257,7 +270,7 @@ h1, h2, p { margin: 0; }
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text-muted);
 }
 .countdown-units { display: flex; gap: clamp(6px, 3vw, 14px); }
 .countdown-unit {
@@ -266,24 +279,24 @@ h1, h2, p { margin: 0; }
   gap: 2px;
   min-width: clamp(56px, 18vw, 76px);
   padding: 8px 4px 6px;
-  background: var(--cream);
+  background: var(--surface-2);
 }
 .countdown-value {
   font-size: clamp(24px, 7.5vw, 34px);
   font-weight: 600;
   line-height: 1;
-  color: var(--teal);
+  color: var(--count-color);
   font-variant-numeric: tabular-nums;
 }
-.countdown-unit:last-child .countdown-value { color: var(--coral); }
+.countdown-unit:last-child .countdown-value { color: var(--accent); }
 .countdown-unit-label {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--text-muted);
 }
-.countdown-done { font-size: 26px; font-weight: 600; color: var(--coral); }
+.countdown-done { font-size: 26px; font-weight: 600; color: var(--accent); }
 
 /* Small action tiles */
 .tile--action { gap: 4px; padding: 8px; transition: background 0.2s; }
@@ -454,7 +467,7 @@ h1, h2, p { margin: 0; }
 .login-tabs button[aria-selected='true'] { color: var(--coral); border-color: var(--coral); }
 .login-form { display: grid; gap: 16px; padding: 24px; }
 .login-form label { display: grid; gap: 6px; }
-.login-form label span { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #777; }
+.login-form label span { font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
 .login-form input {
   font: inherit;
   font-size: 16px;
@@ -482,20 +495,20 @@ h1, h2, p { margin: 0; }
   gap: 14px;
   margin-top: 28px;
   font-size: 14px;
-  color: #6f6a64;
+  color: var(--text-soft);
 }
 .btn-logout {
   min-width: 180px;
   padding: 12px 28px;
-  border: 2px solid var(--coral);
-  color: var(--coral);
+  border: 2px solid var(--accent);
+  color: var(--accent);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   transition: background 0.2s, color 0.2s;
 }
-.btn-logout:hover, .btn-logout:active { background: var(--coral); color: #fff; }
+.btn-logout:hover, .btn-logout:active { background: var(--accent); color: var(--page-bg); }
 .admin-tag {
   margin-left: 8px;
   padding: 2px 8px;
@@ -511,7 +524,7 @@ h1, h2, p { margin: 0; }
 /* ---------- Pages ---------- */
 .page { display: grid; gap: 16px; }
 .page-title { font-size: 28px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-.page-lead { color: #666; line-height: 1.5; }
+.page-lead { color: var(--text-soft); line-height: 1.5; }
 
 .badges {
   list-style: none;
@@ -536,7 +549,7 @@ h1, h2, p { margin: 0; }
 .badge-day { position: absolute; bottom: 10%; font-size: 11px; font-weight: 600; }
 
 .steps { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 12px; }
-.step { display: flex; gap: 16px; align-items: flex-start; background: var(--paper); padding: 18px; }
+.step { display: flex; gap: 16px; align-items: flex-start; background: var(--surface); padding: 18px; }
 .step-num {
   flex: none;
   width: 36px;
@@ -548,13 +561,13 @@ h1, h2, p { margin: 0; }
   font-weight: 600;
 }
 .step h2 { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
-.step p { color: #666; line-height: 1.5; }
+.step p { color: var(--text-soft); line-height: 1.5; }
 
 /* ---------- Footer ---------- */
 .footer { text-align: center; padding: 8px 16px calc(48px + env(safe-area-inset-bottom, 0px)); }
-.footer-rule { width: 28px; height: 2px; background: var(--muted); opacity: 0.5; margin: 0 auto 24px; }
+.footer-rule { width: 28px; height: 2px; background: var(--text-muted); opacity: 0.5; margin: 0 auto 24px; }
 .footer-small { font-size: 10px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase; color: #777; }
-.footer-big { font-size: 18px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #6f6a64; margin-top: 4px; }
+.footer-big { font-size: 18px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-soft); margin-top: 4px; }
 
 /* ---------- Animations ---------- */
 @keyframes fade-in { from { opacity: 0; } }
