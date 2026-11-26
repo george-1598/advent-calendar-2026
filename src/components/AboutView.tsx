@@ -28,18 +28,18 @@ const SECTIONS: Section[] = [
   },
   {
     icon: '🎁',
-    title: 'Your gift',
+    title: 'Your reward',
     body: [
-      'Solving a day tells you where to find that day’s real surprise.',
-      'You can send the creator a thank-you, and add a photo of your gift. On December 25 your photos become “Our December”.',
+      'Solving a day reveals that day’s little reward.',
+      'You can send the creator a thank-you, and add a photo to remember the day. On December 25 your photos become “Our December”.',
     ],
   },
   {
-    icon: '🔤',
-    title: 'Badges & the secret phrase',
+    icon: '⭐',
+    title: 'Badges',
     body: [
-      'Every solved day gives you one badge character, in a scrambled order. Your collection is in “Badges”.',
-      'With all 25 characters (on Christmas Day at the earliest), unscramble them to reveal a secret phrase and a final message. On December 25 there’s also your Christmas Wrapped.',
+      'Every day you solve earns you a badge. Your collection is in “Badges”.',
+      'Keep collecting… something special happens at the end of the calendar. ✨',
     ],
   },
   {

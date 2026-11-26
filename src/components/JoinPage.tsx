@@ -69,7 +69,7 @@ export default function JoinPage({ token, signedIn }: { token: string; signedIn:
           <>
             <h1>{from} made you an advent calendar</h1>
             {title && <p className="join-title">“{title}”</p>}
-            <p>25 days of riddles, games and real surprises, one door a day from December 1.</p>
+            <p>25 days of riddles, games and little surprises, one door a day from December 1.</p>
             {signedIn && <p className="admin-muted">Joining…</p>}
           </>
         )}

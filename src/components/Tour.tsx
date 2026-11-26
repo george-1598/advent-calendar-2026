@@ -4,8 +4,8 @@ import { useAuth } from '../lib/auth';
 
 const SLIDES = [
   { emoji: '🚪', title: 'A new door every day', text: 'From December 1 to 25, one door opens each midnight (Bucharest time). Find today’s door: it moves around every day!' },
-  { emoji: '🧩', title: 'Solve it for a real gift', text: 'Behind each door is a riddle, puzzle or game. Get it right and you’ll learn where your real-life surprise is hiding. Stuck? Hints unlock as you try.' },
-  { emoji: '🔤', title: 'Collect the secret phrase', text: 'Every solved day gives you one badge character. With all 25, unscramble them on Christmas Day to reveal a secret message.' },
+  { emoji: '🧩', title: 'Solve it for a little reward', text: 'Behind each door is a riddle, puzzle or game. Get it right and today’s little reward is yours. Stuck? Hints unlock as you try.' },
+  { emoji: '⭐', title: 'Collect a badge every day', text: 'Every day you solve earns you a badge. Keep collecting… something special happens at the end of the calendar.' },
   { emoji: '🎨', title: 'Hidden themes', text: 'The calendar can change its look. New themes are hidden inside the calendar itself; keep an eye out for clues.' },
   { emoji: '📲', title: 'Keep it one tap away', text: 'Add the calendar to your home screen so it opens like an app every morning. You can replay this tour anytime from “About”.' },
 ];

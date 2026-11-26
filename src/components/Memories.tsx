@@ -29,7 +29,7 @@ export function useMemories(): [Memory[] | null, () => void] {
   return [list, load];
 }
 
-/** After solving: add a photo of the real gift (only you and the calendar's creator can see it). */
+/** After solving: add a photo to remember the day (only you and the calendar's creator can see it). */
 export function MemoryBox({ day }: { day: number }) {
   const { session } = useAuth();
   const { current, currentId, canEdit } = useCalendars();
@@ -119,7 +119,7 @@ export function MemoryBox({ day }: { day: number }) {
         </>
       ) : (
         <>
-          <span className="memory-label">📸 Keep a memory of this gift</span>
+          <span className="memory-label">📸 Keep a memory of today</span>
           <input className="memory-caption-input" value={caption} onChange={(e) => setCaption(e.target.value)} maxLength={200} placeholder="A caption (optional)" />
           {picker('Add a photo', true)}
           <small className="memory-note">Only you and {who} can see it. On December 25 your photos become “Our December”.</small>

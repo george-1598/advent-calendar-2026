@@ -27,7 +27,7 @@ export default function ClassicCalendar({ ctrl, onNavigate }: Props) {
   const introMessages = [
     profile ? `Hi ${profile.display_name}! Merry Christmas` : 'A Christmas advent calendar made with love',
     '25 days · 25 quests · 25 surprises',
-    'Swipe, solve, unlock a real gift',
+    'Swipe, solve, unlock a little reward',
     // The hidden key lives on the last slide.
     keyActive('classic') ? `Psst… 🗝 ${KEY_DAYS.classic} opens a new theme` : `${clue('classic')} — key found`,
   ];

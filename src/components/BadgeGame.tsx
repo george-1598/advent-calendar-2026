@@ -187,7 +187,7 @@ export function BadgeGameProgress({ game }: { game: BadgeGameState }) {
   const n = game.tiles?.length ?? 0;
   return (
     <p className="bg-progress">
-      🔤 {n} of 25 characters collected. They hide a secret phrase: collect all 25 and unscramble it!
+      ⭐ {n} of 25 badges collected. Collect them all: something special happens at the end ✨
     </p>
   );
 }
