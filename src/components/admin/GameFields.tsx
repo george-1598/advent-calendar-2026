@@ -7,6 +7,8 @@ import { parseMelody } from '../games/melody';
 import { useMelodyPlayer } from '../games/Song';
 import { TILE_ATTRIBUTION, TILE_URL, pinIcon } from '../games/MapPin';
 import QuestImage, { uploadQuestImage } from '../games/QuestImage';
+import { useEditorCalendar } from './editorCalendar';
+import { MAIN_CALENDAR } from '../../lib/calendars';
 import { GAME_KINDS, MEMORY_DONE } from '../games/types';
 import { plain, toMorse } from '../games/morseCode';
 
@@ -131,7 +133,7 @@ export default function GameFields({ day, kind, content, answers, onChange }: Pr
               }}
               placeholder="MERRY"
             />
-            <small>{(answers[0] ?? '').length || 0} letters · she gets 6 tries per board</small>
+            <small>{(answers[0] ?? '').length || 0} letters · players get 6 tries per board</small>
           </label>
         </>
       );
@@ -169,7 +171,7 @@ export default function GameFields({ day, kind, content, answers, onChange }: Pr
             <input value={answer} onChange={(e) => onChange({ ...content, letters: scramble(e.target.value) }, [e.target.value])} placeholder="e.g. PARIS" />
           </label>
           <div className="admin-preview-row">
-            <span>Letters she gets:</span>
+            <span>Letters they get:</span>
             <strong className="admin-letters">{content.letters || '—'}</strong>
             <button type="button" className="admin-link" onClick={() => setContent({ letters: scramble(answer) })} disabled={!answer}>
               Reshuffle
@@ -263,7 +265,7 @@ export default function GameFields({ day, kind, content, answers, onChange }: Pr
               onChange={(e) => onChange({ ...content, mask: plain(e.target.value).replace(/[a-z0-9]/g, '_') }, [e.target.value])}
               placeholder="e.g. HOT CHOCOLATE"
             />
-            <small>She sees {content.mask ? content.mask.replace(/_/g, '▢') : 'one box per letter'}. 6 wrong letters melt the snowman.</small>
+            <small>Players see {content.mask ? content.mask.replace(/_/g, '▢') : 'one box per letter'}. 6 wrong letters melt the snowman.</small>
           </label>
         </>
       );
@@ -281,7 +283,7 @@ export default function GameFields({ day, kind, content, answers, onChange }: Pr
             <textarea rows={2} value={answers[0] ?? ''} onChange={(e) => onChange({ ...content, cipher: e.target.value.trim() ? encode(e.target.value) : undefined }, [e.target.value])} placeholder="e.g. Your gift is in the blue box" />
           </label>
           <div className="admin-preview-row">
-            <span>She sees:</span>
+            <span>Players see:</span>
             <strong className="admin-letters">{content.cipher || '—'}</strong>
             <button type="button" className="admin-link" onClick={() => setContent({ cipher: encode(answers[0] ?? '') })} disabled={!answers[0]}>
               New shift
@@ -303,7 +305,7 @@ export default function GameFields({ day, kind, content, answers, onChange }: Pr
               path={content.image}
               point={target}
               radius={radius}
-              label="Tap the spot she has to find"
+              label="Tap the spot players have to find"
               onPick={(p) => onChange(content, [`${p.x.toFixed(4)},${p.y.toFixed(4)},${radius}`])}
             />
           )}
@@ -461,7 +463,7 @@ function MapFields({ content, answers, onChange }: { content: GameContent; answe
       </div>
       <div className="admin-preview-row">
         <span>
-          Her starting view:{' '}
+          Starting view:{' '}
           <strong>{content.center ? `${content.center.map((x) => x.toFixed(2)).join(', ')} · zoom ${content.zoom}` : 'all of Europe'}</strong>
         </span>
         <button
@@ -575,19 +577,21 @@ function TimelineFields({ content, answers, onChange }: { content: GameContent; 
     <label>
       <span>Moments, in the correct order (one per line)</span>
       <textarea rows={6} value={text} onChange={(e) => commit(e.target.value)} placeholder={'Our first date at the café\nThe trip to the mountains\nMoving in together'} />
-      <small>She’ll see them shuffled and put them back in this order.</small>
+      <small>Players see them shuffled and put them back in this order.</small>
     </label>
   );
 }
 
 function TreasureQR({ day, codes }: { day: number; codes: string[] }) {
+  const calendarId = useEditorCalendar();
   const [qrs, setQrs] = useState<{ code: string; url: string; img: string }[]>([]);
   const key = codes.join('|');
   useEffect(() => {
     let cancelled = false;
     Promise.all(
       codes.map(async (code) => {
-        const url = `${window.location.origin}${import.meta.env.BASE_URL}#/day/${day}/${encodeURIComponent(code)}`;
+        const prefix = calendarId === MAIN_CALENDAR ? '' : `/c/${calendarId}`;
+        const url = `${window.location.origin}${import.meta.env.BASE_URL}#${prefix}/day/${day}/${encodeURIComponent(code)}`;
         return { code, url, img: await QRCode.toDataURL(url, { margin: 1, width: 360, color: { dark: '#2b2b2b', light: '#ffffff' } }) };
       }),
     ).then((r) => !cancelled && setQrs(r));
@@ -595,7 +599,7 @@ function TreasureQR({ day, codes }: { day: number; codes: string[] }) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [key, day]);
+  }, [key, day, calendarId]);
 
   if (!qrs.length) return null;
   return (
@@ -603,7 +607,7 @@ function TreasureQR({ day, codes }: { day: number; codes: string[] }) {
       <span className="admin-qr-title">Print & hide — scanning it opens day {day} and solves it</span>
       {qrs.map((q) => (
         <figure key={q.code}>
-          <img src={q.img} alt={`QR code for ${q.code}`} />
+          <img src={q.img} alt={`QR code for ${q.code}`} title={q.url} />
           <figcaption>
             <strong>{q.code}</strong>
             <a href={q.img} download={`day-${day}-${q.code}.png`}>
@@ -630,6 +634,7 @@ function ImagePicker({
   preview?: boolean;
   onChange: (path: string | undefined) => void;
 }) {
+  const calendarId = useEditorCalendar();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   return (
@@ -646,7 +651,7 @@ function ImagePicker({
             setBusy(true);
             setError(null);
             try {
-              onChange(await uploadQuestImage(day, file));
+              onChange(await uploadQuestImage(day, file, calendarId));
             } catch (err) {
               setError(err instanceof Error ? err.message : 'Upload failed');
             }
@@ -806,7 +811,7 @@ function ChainFields({ day, content, answers, onChange }: { day: number; content
       <button type="button" className="admin-link" onClick={() => commit([...parts, { kind: 'riddle', content: {} }], [...lists, []])}>
         + Add a step
       </button>
-      <small>She solves the steps in order; the gift appears after the last one. Her progress is saved between visits.</small>
+      <small>Players solve the steps in order; the gift appears after the last one. Progress is saved between visits.</small>
     </div>
   );
 }

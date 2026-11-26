@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNow } from '../../lib/useNow';
 import { formatCountdown, isToday, isUnlocked, unlockAt } from '../../lib/time';
-import { useAuth } from '../../lib/auth';
+import { useCalendars } from '../../lib/calendars';
 import { useProgress } from '../../lib/progress';
 import { openDayPage } from '../../lib/route';
 
@@ -20,9 +20,9 @@ export interface DayState {
  */
 export function useCalendarController() {
   const now = useNow();
-  const { profile } = useAuth();
   const { byDay } = useProgress();
-  const isAdmin = Boolean(profile?.is_admin);
+  // Admins (main calendar) and creators (their own) can preview locked days.
+  const { canEdit: isAdmin } = useCalendars();
 
   const [shakingDay, setShakingDay] = useState<number | null>(null);
   const [toast, setToast] = useState<string | null>(null);

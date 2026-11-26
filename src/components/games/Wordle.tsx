@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { GameProps } from './types';
 import { useGameSubmit } from './useSubmit';
+import { MAIN_CALENDAR, useCalendars } from '../../lib/calendars';
 
 const ROWS = 6;
 const KEYS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
@@ -8,7 +9,8 @@ type Row = { word: string; pattern: string };
 
 export default function Wordle({ day, content, solved, step }: GameProps) {
   const length = Math.max(2, Math.min(10, content.length ?? 5));
-  const storeKey = `advent-wordle-${day}-${step ?? 0}`;
+  const { currentId: calendarId } = useCalendars();
+  const storeKey = `advent-wordle-${calendarId === MAIN_CALENDAR ? '' : `${calendarId}-`}${day}-${step ?? 0}`;
   const [rows, setRows] = useState<Row[]>(() => {
     try {
       return JSON.parse(localStorage.getItem(storeKey) ?? '[]') as Row[];

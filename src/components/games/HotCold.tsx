@@ -2,6 +2,7 @@ import { useState, type MouseEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { GameProps } from './types';
 import { useGameSubmit } from './useSubmit';
+import { useCalendars } from '../../lib/calendars';
 import QuestImage from './QuestImage';
 
 const LEVELS: Record<string, { label: string; temp: number }> = {
@@ -15,6 +16,7 @@ const LEVELS: Record<string, { label: string; temp: number }> = {
 
 /** Tap the photo to find the hidden spot; the server says how warm each tap is. */
 export default function HotCold({ day, content, solved, step }: GameProps) {
+  const { currentId: calendarId } = useCalendars();
   const [taps, setTaps] = useState<{ x: number; y: number; level: string }[]>([]);
   const [checking, setChecking] = useState(false);
   const { error, run } = useGameSubmit(day);
@@ -26,7 +28,7 @@ export default function HotCold({ day, content, solved, step }: GameProps) {
     const x = (e.clientX - r.left) / r.width;
     const y = (e.clientY - r.top) / r.height;
     setChecking(true);
-    const { data, error: err } = await supabase.rpc('hot_cold_probe', { p_day: day, p_x: x, p_y: y, p_step: step ?? null });
+    const { data, error: err } = await supabase.rpc('hot_cold_probe', { p_day: day, p_x: x, p_y: y, p_step: step ?? null, p_calendar: calendarId });
     setChecking(false);
     if (err) return;
     const level = String(data);

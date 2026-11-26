@@ -8,6 +8,7 @@ import {
 } from 'react';
 import { supabase } from './supabase';
 import { useAuth } from './auth';
+import { useCalendars } from './calendars';
 
 export interface DayProgress {
   day: number;
@@ -44,13 +45,14 @@ const ProgressContext = createContext<ProgressState | null>(null);
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
   const userId = session?.user.id;
+  const { currentId: calendarId } = useCalendars();
   const [byDay, setByDay] = useState<Record<number, DayProgress>>({});
 
   useEffect(() => {
     setByDay({});
     if (!userId) return;
     let cancelled = false;
-    supabase.rpc('get_my_progress').then(({ data, error }) => {
+    supabase.rpc('get_my_progress', { p_calendar: calendarId }).then(({ data, error }) => {
       if (cancelled || error || !data) return;
       const rows = data as DayProgress[];
       setByDay(Object.fromEntries(rows.map((row) => [row.day, row])));
@@ -58,10 +60,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, calendarId]);
 
   const submit = useCallback(async (day: number, answer: string) => {
-    const { data, error } = await supabase.rpc('submit_answer', { p_day: day, p_answer: answer });
+    const { data, error } = await supabase.rpc('submit_answer', { p_day: day, p_answer: answer, p_calendar: calendarId });
     if (error) throw new Error(error.message);
     const result = data as SubmitResult;
     setByDay((prev) => ({
@@ -77,7 +79,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       },
     }));
     return result;
-  }, []);
+  }, [calendarId]);
 
   const solvedCount = Object.values(byDay).filter((p) => p.solved_at).length;
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import type { GameProps } from './types';
 import { useGameSubmit } from './useSubmit';
+import { MAIN_CALENDAR, useCalendars } from '../../lib/calendars';
 
 const LIVES = 6;
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -37,7 +38,8 @@ function Snowman({ lost }: { lost: number }) {
 
 export default function Hangman({ day, content, solved, step }: GameProps) {
   const mask = (content.mask ?? '').toUpperCase();
-  const storeKey = `advent-hangman-${day}-${step ?? 0}`;
+  const { currentId: calendarId } = useCalendars();
+  const storeKey = `advent-hangman-${calendarId === MAIN_CALENDAR ? '' : `${calendarId}-`}${day}-${step ?? 0}`;
   const [state, setState] = useState<{ revealed: Record<number, string>; guessed: string[]; lost: number }>(() => {
     try {
       return JSON.parse(localStorage.getItem(storeKey) ?? '') as { revealed: Record<number, string>; guessed: string[]; lost: number };
@@ -69,7 +71,7 @@ export default function Hangman({ day, content, solved, step }: GameProps) {
   const guess = async (letter: string) => {
     if (solved || melted || checking || state.guessed.includes(letter)) return;
     setChecking(letter);
-    const { data, error: err } = await supabase.rpc('hangman_letter', { p_day: day, p_letter: letter, p_step: step ?? null });
+    const { data, error: err } = await supabase.rpc('hangman_letter', { p_day: day, p_letter: letter, p_step: step ?? null, p_calendar: calendarId });
     setChecking(null);
     if (err) return;
     const positions = (data as number[]) ?? [];

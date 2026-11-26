@@ -3,7 +3,7 @@ import Game from './games/Game';
 import type { GameContent } from './games/types';
 import { supabase } from '../lib/supabase';
 import { useProgress } from '../lib/progress';
-import { useAuth } from '../lib/auth';
+import { calendarLabel, useCalendars } from '../lib/calendars';
 import { useNow } from '../lib/useNow';
 import { TOTAL_DAYS, YEAR, formatCountdown, isUnlocked, unlockAt } from '../lib/time';
 import { dayColor, goHome, openDayPage } from '../lib/route';
@@ -21,11 +21,11 @@ const FALLBACK_COLOR = '#7A231C';
 /** A full page for one day: hero header, the day's quest/game, and the gift once solved. */
 export default function DayPage({ day, code }: { day: number; code?: string }) {
   const now = useNow();
-  const { profile } = useAuth();
+  const { current: calendar, currentId: calendarId, canEdit } = useCalendars();
   const { byDay } = useProgress();
   const progress = byDay[day];
   const solved = Boolean(progress?.solved_at);
-  const canOpen = isUnlocked(day, now) || Boolean(profile?.is_admin);
+  const canOpen = isUnlocked(day, now) || canEdit;
   const color = dayColor() ?? FALLBACK_COLOR;
   const date = new Date(Date.UTC(YEAR, 11, day)).toLocaleDateString('en-GB', {
     weekday: 'long',
@@ -49,16 +49,16 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
     if (!canOpen) return;
     let cancelled = false;
     // The server returns this player's own version of the quest (or the default).
-    supabase.rpc('get_quest', { p_day: day }).then(({ data }) => {
+    supabase.rpc('get_quest', { p_day: day, p_calendar: calendarId }).then(({ data }) => {
       if (!cancelled) setQuest((data as Quest | null) ?? null);
     });
     return () => {
       cancelled = true;
     };
-  }, [day, canOpen]);
+  }, [day, canOpen, calendarId]);
 
-  const prev = day > 1 && (isUnlocked(day - 1, now) || profile?.is_admin) ? day - 1 : null;
-  const next = day < TOTAL_DAYS && (isUnlocked(day + 1, now) || profile?.is_admin) ? day + 1 : null;
+  const prev = day > 1 && (isUnlocked(day - 1, now) || canEdit) ? day - 1 : null;
+  const next = day < TOTAL_DAYS && (isUnlocked(day + 1, now) || canEdit) ? day + 1 : null;
 
   return (
     <article className="day-page" style={{ '--day': color } as CSSProperties}>
@@ -66,6 +66,7 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
         <button className="day-back" onClick={goHome}>
           ← Back to the calendar
         </button>
+        {!calendar.is_main && <span className="day-hero-calendar">{calendarLabel(calendar)}</span>}
         <span className="day-hero-kicker">December</span>
         <span className="day-hero-num">{day}</span>
         <span className="day-hero-date">{date}</span>
@@ -97,7 +98,7 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
 
         {canOpen && quest && (
           <div className="day-card">
-            <Game key={`${day}-${quest.kind}`} kind={quest.kind} day={day} content={quest.content ?? {}} solved={solved} code={code} />
+            <Game key={`${calendarId}-${day}-${quest.kind}`} kind={quest.kind} day={day} content={quest.content ?? {}} solved={solved} code={code} />
             {solved ? (
               <div className="day-reward">
                 <div className="day-reward-badge">

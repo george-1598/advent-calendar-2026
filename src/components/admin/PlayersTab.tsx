@@ -4,6 +4,7 @@ import { THEMES, type ThemeId } from '../../lib/theme';
 import { THEME_CHAIN } from '../../lib/unlocks';
 import { TOTAL_DAYS, isToday, isUnlocked, unlockAt } from '../../lib/time';
 import { useNow } from '../../lib/useNow';
+import { MAIN_CALENDAR } from '../../lib/calendars';
 
 interface PlayerProgress {
   day: number;
@@ -86,7 +87,7 @@ function stats(p: Player) {
   };
 }
 
-export default function PlayersTab() {
+export default function PlayersTab({ calendarId = MAIN_CALENDAR }: { calendarId?: string }) {
   const now = useNow(30000);
   const [players, setPlayers] = useState<Player[] | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -96,12 +97,13 @@ export default function PlayersTab() {
 
   const load = () => {
     setError(null);
-    supabase.rpc('admin_dashboard').then(({ data, error }) => {
+    supabase.rpc('admin_dashboard', { p_calendar: calendarId }).then(({ data, error }) => {
       if (error) setError(error.message);
       else setPlayers(data as Player[]);
     });
   };
-  useEffect(load, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(load, [calendarId]);
 
   if (error) return <p className="form-error">{error}</p>;
   if (!players) return <p className="admin-muted">Loading players…</p>;

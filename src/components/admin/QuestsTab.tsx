@@ -4,6 +4,8 @@ import { formatCountdown } from '../../lib/time';
 import { useNow } from '../../lib/useNow';
 import { openDayPage } from '../../lib/route';
 import type { Player } from './PlayersTab';
+import { EditorCalendar, useEditorCalendar } from './editorCalendar';
+import { MAIN_CALENDAR, useCalendars } from '../../lib/calendars';
 import GameFields, { cleanAnswers, validateGame } from './GameFields';
 import { GAME_KINDS, type GameContent, type GameKind } from '../games/types';
 
@@ -53,7 +55,7 @@ const toForm = (q: QuestFields | undefined, fallbackKind = ''): Form => ({
   customGame: Boolean(q?.content || q?.answers),
 });
 
-export default function QuestsTab() {
+export default function QuestsTab({ calendarId = MAIN_CALENDAR }: { calendarId?: string }) {
   const now = useNow(30000);
   const [quests, setQuests] = useState<AdminQuest[] | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -61,14 +63,14 @@ export default function QuestsTab() {
   const [editing, setEditing] = useState<number | null>(null);
 
   const load = () => {
-    supabase.rpc('admin_quests').then(({ data, error }) => {
+    supabase.rpc('admin_quests', { p_calendar: calendarId }).then(({ data, error }) => {
       if (error) setError(error.message);
       else setQuests(data as AdminQuest[]);
     });
   };
   useEffect(() => {
     load();
-    supabase.rpc('admin_dashboard').then(({ data }) => data && setPlayers(data as Player[]));
+    supabase.rpc('admin_dashboard', { p_calendar: calendarId }).then(({ data }) => data && setPlayers(data as Player[]));
   }, []);
 
   if (error) return <p className="form-error">{error}</p>;
@@ -77,6 +79,7 @@ export default function QuestsTab() {
   const ready = quests.filter((q) => q.title).length;
 
   return (
+    <EditorCalendar.Provider value={calendarId}>
     <div className="admin-stack">
       <p className="admin-muted">
         {ready} of 25 days have a default quest. Each day can also be customised per player. Answers are checked
@@ -105,6 +108,7 @@ export default function QuestsTab() {
         );
       })}
     </div>
+    </EditorCalendar.Provider>
   );
 }
 
@@ -119,6 +123,8 @@ function QuestEditor({
   players: Player[];
   onSaved: () => void;
 }) {
+  const calendarId = useEditorCalendar();
+  const { select: selectCalendar } = useCalendars();
   const overrideOf = (id: string) => quest.overrides.find((o) => o.user_id === id);
   // One draft per target, so switching between players keeps unsaved edits.
   const [drafts, setDrafts] = useState<Record<string, Form>>(() => ({
@@ -174,6 +180,7 @@ function QuestEditor({
           p_reward: form.reward,
           p_hint: form.hint,
           p_badge_letter: form.letter,
+          p_calendar: calendarId,
         })
       : await supabase.rpc('admin_save_override', {
           p_user: target,
@@ -185,6 +192,7 @@ function QuestEditor({
           p_reward: form.reward,
           p_hint: form.hint,
           p_badge_letter: form.letter,
+          p_calendar: calendarId,
         });
     setBusy(false);
     setMessage(error ? { ok: false, text: error.message } : { ok: true, text: isDefault ? 'Default saved ✓' : `Saved for ${player?.name} ✓` });
@@ -203,6 +211,7 @@ function QuestEditor({
       p_reward: null,
       p_hint: null,
       p_badge_letter: null,
+      p_calendar: calendarId,
     });
     setBusy(false);
     if (error) return setMessage({ ok: false, text: error.message });
@@ -213,7 +222,7 @@ function QuestEditor({
 
   const remove = async () => {
     setBusy(true);
-    const { error } = await supabase.rpc('admin_delete_quest', { p_day: quest.day });
+    const { error } = await supabase.rpc('admin_delete_quest', { p_day: quest.day, p_calendar: calendarId });
     setBusy(false);
     if (error) setMessage({ ok: false, text: error.message });
     else {
@@ -373,7 +382,10 @@ function QuestEditor({
           {busy ? 'Saving…' : isDefault ? 'Save default' : `Save for ${player?.name}`}
         </button>
         {(quest.title || quest.overrides.length > 0) && (
-          <button type="button" className="admin-link" onClick={() => openDayPage(quest.day, '#7A231C')}>
+          <button type="button" className="admin-link" onClick={() => {
+            selectCalendar(calendarId);
+            openDayPage(quest.day, '#7A231C');
+          }}>
             Preview (as you) →
           </button>
         )}

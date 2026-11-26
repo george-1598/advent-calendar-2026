@@ -1,8 +1,10 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import DayPage from './components/DayPage';
-import { goHome, openAdmin, savedScroll, useRoute } from './lib/route';
+import { goHome, openAdmin, openMine, savedScroll, stripCalendarFromUrl, useRoute } from './lib/route';
+import { useCalendars } from './lib/calendars';
 // Admin pages (and their map/QR tools) load only for admins who open them.
 const AdminPage = lazy(() => import('./components/admin/AdminPage'));
+const MyCalendarPage = lazy(() => import('./components/admin/MyCalendarPage'));
 import ThemePicker from './components/ThemePicker';
 import UnlockCelebration from './components/UnlockCelebration';
 import Calendar from './components/Calendar';
@@ -29,6 +31,16 @@ export default function App() {
   const [view, setView] = useState<View>('calendar');
   const [pickerOpen, setPickerOpen] = useState(false);
   const route = useRoute();
+  const { calendars, currentId, select } = useCalendars();
+  const hasOwnCalendar = calendars.some((c) => c.is_owner);
+
+  // Links like #/c/<id>/day/7/CODE (treasure QR codes) switch to that calendar first.
+  useEffect(() => {
+    if (!route.calendar) return;
+    select(route.calendar);
+    stripCalendarFromUrl();
+  }, [route.calendar, select]);
+  const switching = Boolean(route.calendar && route.calendar !== currentId);
 
   // Coming back from a day page: restore where the calendar was scrolled to.
   useEffect(() => {
@@ -77,9 +89,13 @@ export default function App() {
           <LoginView />
         ) : (
           <>
-            {route.name === 'admin' ? (
+            {switching ? null : route.name === 'admin' ? (
               <Suspense fallback={<p className="admin-muted">Loading…</p>}>
                 <AdminPage tab={route.tab} />
+              </Suspense>
+            ) : route.name === 'mine' ? (
+              <Suspense fallback={<p className="admin-muted">Loading…</p>}>
+                <MyCalendarPage tab={route.tab} />
               </Suspense>
             ) : route.name === 'day' ? (
               <DayPage day={route.day} code={route.code} />
@@ -102,6 +118,9 @@ export default function App() {
               Signed in as <strong>{profile?.display_name ?? '…'}</strong>
               {profile?.is_admin && <span className="admin-tag">Admin</span>}
             </span>
+            <button className="btn-mine" onClick={() => openMine()} aria-current={route.name === 'mine' ? 'page' : undefined}>
+              {hasOwnCalendar ? '🎁 My calendar for friends' : '🎁 Make a calendar for friends'}
+            </button>
             <button className="btn-logout" onClick={signOut}>
               Log out
             </button>

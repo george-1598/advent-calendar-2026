@@ -4,14 +4,25 @@ import { useEffect, useState } from 'react';
  * Tiny hash router (works on GitHub Pages without server rewrites):
  *   #/          → the calendar
  *   #/day/7     → the page for December 7
+ *   #/admin/…   → the organiser's pages
+ *   #/mine/…    → the user's own calendar for friends
+ *   #/c/<id>/…  → any of the above, switching to calendar <id> first (treasure QR codes)
  */
 export type AdminTab = 'players' | 'quests';
-export type Route = { name: 'home' } | { name: 'day'; day: number; code?: string } | { name: 'admin'; tab: AdminTab };
+export type MineTab = 'friends' | 'quests' | 'players';
+export type Route = (
+  | { name: 'home' }
+  | { name: 'day'; day: number; code?: string }
+  | { name: 'admin'; tab: AdminTab }
+  | { name: 'mine'; tab: MineTab }
+) & { calendar?: string };
 
 const ROUTE_EVENT = 'advent-route';
 const COLOR_KEY = 'advent-day-color';
 
 export function parseRoute(hash = window.location.hash): Route {
+  const c = hash.match(/^#\/c\/([0-9a-f-]{36})(\/.*)?$/);
+  if (c) return { ...parseRoute(`#${c[2] ?? '/'}`), calendar: c[1] };
   // #/day/7 or #/day/7/CODE (treasure-hunt QR codes carry the code).
   const m = hash.match(/^#\/day\/(\d{1,2})(?:\/([^/?#]+))?$/);
   if (m) {
@@ -20,6 +31,8 @@ export function parseRoute(hash = window.location.hash): Route {
   }
   const a = hash.match(/^#\/admin(?:\/(players|quests))?$/);
   if (a) return { name: 'admin', tab: (a[1] as AdminTab | undefined) ?? 'players' };
+  const mine = hash.match(/^#\/mine(?:\/(friends|quests|players))?$/);
+  if (mine) return { name: 'mine', tab: (mine[1] as MineTab | undefined) ?? 'friends' };
   return { name: 'home' };
 }
 
@@ -96,4 +109,21 @@ export function openAdmin(tab: AdminTab = 'players') {
   else history.pushState({}, '', `#/admin/${tab}`);
   window.dispatchEvent(new Event(ROUTE_EVENT));
   window.scrollTo(0, 0);
+}
+
+/** Open a tab of the user's own calendar page. */
+export function openMine(tab: MineTab = 'friends') {
+  const inMine = parseRoute().name === 'mine';
+  if (inMine) history.replaceState({}, '', `#/mine/${tab}`);
+  else history.pushState({}, '', `#/mine/${tab}`);
+  window.dispatchEvent(new Event(ROUTE_EVENT));
+  window.scrollTo(0, 0);
+}
+
+/** Drop a "#/c/<id>" prefix once the calendar has been selected. */
+export function stripCalendarFromUrl() {
+  const m = window.location.hash.match(/^#\/c\/[0-9a-f-]{36}(\/.*)?$/);
+  if (!m) return;
+  history.replaceState(history.state, '', `#${m[1] ?? '/'}`);
+  window.dispatchEvent(new Event(ROUTE_EVENT));
 }

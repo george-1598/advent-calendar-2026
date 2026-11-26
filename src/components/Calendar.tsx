@@ -2,6 +2,7 @@ import type { View } from '../App';
 import { useTheme } from '../lib/theme';
 import { useCalendarController } from './calendar/controller';
 import CountdownBanner from './CountdownBanner';
+import CalendarSwitcher from './CalendarSwitcher';
 import ClassicCalendar from './themes/ClassicCalendar';
 import PresentsCalendar from './themes/PresentsCalendar';
 import CarouselCalendar from './themes/CarouselCalendar';
@@ -20,6 +21,7 @@ export default function Calendar({ onNavigate }: { onNavigate: (view: View) => v
   return (
     <>
       <CountdownBanner now={ctrl.now} />
+      <CalendarSwitcher />
       {theme === 'classic' && <ClassicCalendar ctrl={ctrl} onNavigate={onNavigate} />}
       {theme === 'presents' && <PresentsCalendar ctrl={ctrl} />}
       {theme === 'carousel' && <CarouselCalendar ctrl={ctrl} />}
