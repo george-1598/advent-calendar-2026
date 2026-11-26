@@ -5,12 +5,19 @@ import { ariaStatus, type CalendarController } from '../calendar/controller';
 import { LockIcon, StarIcon } from '../icons';
 import Dome from './carousel/Dome';
 import { KEY_DAYS, useUnlocks } from '../../lib/unlocks';
+import { dailyDays } from '../../lib/daily';
 
 /** 13 columns × 2 rows = 25 drawers + the logo panel. [top, bottom] per column. */
-const COLUMNS: ReadonlyArray<readonly [number | 'logo', number]> = [
+const SHAPE: ReadonlyArray<readonly [number | 'logo', number]> = [
   ['logo', 2], [8, 5], [15, 18], [11, 20], [3, 14], [25, 10], [19, 7],
   [13, 23], [4, 16], [21, 12], [17, 22], [1, 9], [6, 24],
 ];
+// Same shape every day; which drawer holds which day changes daily.
+const TODAY = dailyDays(1313);
+const COLUMNS: ReadonlyArray<readonly [number | 'logo', number]> = SHAPE.map(([top, bottom]) => [
+  top === 'logo' ? 'logo' : TODAY[top - 1],
+  TODAY[bottom - 1],
+]);
 const N = COLUMNS.length;
 const STEP = 360 / N;
 const RED = '#B3172C';

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
 import { PendingMark } from '../calendar/Pending';
 import { useExplored } from '../../lib/explored';
-import { rng, shuffle } from '../../lib/random';
 import { playMusicNote, playRatchet } from '../../lib/sound';
 import { TOTAL_DAYS } from '../../lib/time';
 import type { CalendarController } from '../calendar/controller';
 import SoundToggle from '../SoundToggle';
 import LockAllButton from '../LockAllButton';
+import { dailyDays } from '../../lib/daily';
 
 // Jingle Bells (public domain), one octave up for that tinkly music-box sound: [midi, beats]
 const E = 76, G = 79, C = 72, D = 74, F = 77;
@@ -22,8 +22,9 @@ const MELODY: [number, number][] = [
 const BASS = [48, 48, 53, 55, 48, 48, 55, 48];
 
 /** Drawer grid on the front (5×5) and the order drawers pop open in. */
-const GRID = shuffle(rng(1225), Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1));
-const POP_ORDER = shuffle(rng(612), Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1));
+// Drawer plates and the pop-out order are rearranged daily.
+const GRID = dailyDays(1225, TOTAL_DAYS);
+const POP_ORDER = dailyDays(612, TOTAL_DAYS);
 
 const DRAIN_PER_SEC = 3.2; // % of a full wind
 const WIND_PER_TURN = 20; // % per full turn of the key

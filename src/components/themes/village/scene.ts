@@ -1,5 +1,6 @@
 import { pick, rng, shuffle } from '../../../lib/random';
 import { TOTAL_DAYS } from '../../../lib/time';
+import { dailyRng } from '../../../lib/daily';
 
 export const VIEW_W = 1200;
 export const VIEW_H = 800;
@@ -102,8 +103,10 @@ function build(): HouseSpec[] {
 
   // Hide the 25 days among the windows.
   const all = houses.flatMap((h) => h.windows);
-  const chosen = shuffle(r, all).slice(0, TOTAL_DAYS);
-  const days = shuffle(r, Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1));
+  // The village stays the same; which window hides which day changes daily.
+  const dr = dailyRng(808);
+  const chosen = shuffle(dr, all).slice(0, TOTAL_DAYS);
+  const days = shuffle(dr, Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1));
   chosen.forEach((w, i) => {
     w.day = days[i];
     w.interior = pick(r, NUMBERED);

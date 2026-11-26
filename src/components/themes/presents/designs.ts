@@ -1,5 +1,5 @@
 import { TOTAL_DAYS } from '../../../lib/time';
-import { shuffle } from '../../../lib/random';
+import { dailyDays } from '../../../lib/daily';
 
 /**
  * Procedurally generated (but deterministic) gift designs — the same day always
@@ -139,7 +139,8 @@ function makeDesign(day: number, paper: Paper): GiftDesign {
 }
 
 /** The gifts are shuffled so today's present has to be found. */
-export const GIFT_ORDER = shuffle(rng(1712), Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1));
+// Gifts are rearranged daily (wrapping is then chosen so neighbours differ).
+export const GIFT_ORDER = dailyDays(1712, TOTAL_DAYS);
 
 function buildDesigns(): Record<number, GiftDesign> {
   const designs: Record<number, GiftDesign> = {};

@@ -1,5 +1,6 @@
 import { pick, rng, shuffle } from '../../../lib/random';
 import { TOTAL_DAYS } from '../../../lib/time';
+import { dailyDays } from '../../../lib/daily';
 
 export const JOKES: [string, string][] = [
   ['What do you call an obnoxious reindeer?', 'Rude-olph.'],
@@ -49,7 +50,8 @@ const FOILS = [
 ];
 const CROWNS = ['#FF6B6B', '#7FD3A0', '#7FB2FF', '#F7A6D8', '#FFD166'];
 
-export const CRACKER_ORDER = shuffle(rng(2512), Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1));
+// Crackers are rearranged daily.
+export const CRACKER_ORDER = dailyDays(2512, TOTAL_DAYS);
 
 export const CRACKERS: Record<number, CrackerDesign> = (() => {
   const r = rng(77);

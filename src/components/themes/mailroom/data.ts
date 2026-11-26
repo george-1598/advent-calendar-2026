@@ -1,5 +1,6 @@
 import { between, pick, rng, shuffle } from '../../../lib/random';
 import { TOTAL_DAYS } from '../../../lib/time';
+import { dailyRng } from '../../../lib/daily';
 
 export type MailKind = 'letter' | 'postcard' | 'parcel';
 
@@ -55,7 +56,8 @@ function build(): Mail[] {
     ...Array.from({ length: TOTAL_DAYS }, (_, i) => ({ day: i + 1, kind: 'letter' as MailKind })),
     ...DECOY_PLAN.map((kind) => ({ day: null, kind })),
   ];
-  shuffle(r, all).forEach((m, i) => {
+  // Spots and paper stay the same; which letter lands where changes daily.
+  shuffle(dailyRng(4512), all).forEach((m, i) => {
     const p = pick(r, PAPERS);
     items.push({
       id: m.day ? `day-${m.day}` : `decoy-${i}`,

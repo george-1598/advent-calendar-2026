@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
 import { PendingNote } from '../calendar/Pending';
-import { between, rng } from '../../lib/random';
+import { between } from '../../lib/random';
 import { playChime, playTink } from '../../lib/sound';
 import { TOTAL_DAYS, formatCountdown, isUnlocked, unlockAt } from '../../lib/time';
 import type { CalendarController } from '../calendar/controller';
@@ -8,12 +8,14 @@ import SoundToggle from '../SoundToggle';
 import { KEY_DAYS, useUnlocks } from '../../lib/unlocks';
 import { DESIGNS, OrnamentArt } from './ornaments/Ornament';
 import { geometry, step, type Body, type Geometry, type Vec } from './ornaments/physics';
+import { dailyRng } from '../../lib/daily';
 
 type TiltState = 'unknown' | 'needs-permission' | 'on';
 const clamp = (v: number) => Math.max(-1, Math.min(1, v));
 
 function initialBodies(geo: Geometry): Body[] {
-  const r = rng(31);
+  // Where each ornament starts changes daily.
+  const r = dailyRng(31);
   const { w, h } = geo;
   const bodies: Body[] = [];
   const overlaps = (x: number, y: number, rad: number) =>

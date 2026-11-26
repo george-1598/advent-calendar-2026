@@ -92,7 +92,7 @@ export default function ClassicCalendar({ ctrl, onNavigate }: Props) {
                 <button
                   key={item.day}
                   className={classes}
-                  style={dayColorStyle(item.day)}
+                  style={dayColorStyle(item.slot)}
                   aria-label={`December ${item.day}${ariaStatus(s)}`}
                   onClick={(e) => {
                     if (found('classic', item.day) === 'unlocked') return;

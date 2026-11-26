@@ -1,5 +1,6 @@
 import { between, pick, rng, shuffle } from '../../../lib/random';
 import { TOTAL_DAYS } from '../../../lib/time';
+import { dailyRng } from '../../../lib/daily';
 
 export type Motif = 'holly' | 'tree' | 'star' | 'candle' | 'bird' | 'none';
 export type Orientation = 'upright' | 'lean' | 'flat' | 'cover';
@@ -102,7 +103,8 @@ function buildShelf(): ShelfItem[] {
   });
 
   // Mix them up, then lay some flat in little stacks and lean a few.
-  const order = shuffle(rng(77), books);
+  // The books' looks stay the same; where they stand on the shelves changes daily.
+  const order = shuffle(dailyRng(77), books);
   const items: ShelfItem[] = [];
   const sr = rng(5150);
   let i = 0;

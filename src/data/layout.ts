@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { dailyDays } from '../lib/daily';
 
 export type TileColor = 'sage' | 'coral' | 'teal';
 
@@ -6,16 +7,17 @@ export type TileColor = 'sage' | 'coral' | 'teal';
 type DayColors = [TileColor, TileColor, TileColor];
 
 export type LayoutItem =
-  | { kind: 'day'; day: number }
+  /** `slot` is the spot's original day: its colours were chosen so neighbours differ. */
+  | { kind: 'day'; day: number; slot: number }
   | { kind: 'intro' | 'logo' | 'badges' | 'howto' };
 
-const d = (day: number): LayoutItem => ({ kind: 'day', day });
+const d = (day: number): LayoutItem => ({ kind: 'day', day, slot: day });
 
 /**
  * Tile order for the calendar grid (`grid-auto-flow: dense`). With the spans in
  * styles.css this fills complete rows at every breakpoint: 3×11, 4×9 and 6×6.
  */
-export const LAYOUT: LayoutItem[] = [
+const BASE: LayoutItem[] = [
   { kind: 'intro' },
   d(11), d(5), d(2), d(19), d(16), d(9),
   { kind: 'logo' },
@@ -25,6 +27,10 @@ export const LAYOUT: LayoutItem[] = [
   { kind: 'badges' },
   d(23), d(14), d(13), d(24), d(25), d(20), d(6),
 ];
+
+/** Today's grid: same spots and colours, days rearranged once a day. */
+const TODAY = dailyDays(4242);
+export const LAYOUT: LayoutItem[] = BASE.map((item) => (item.kind === 'day' ? { ...item, day: TODAY[item.slot - 1] } : item));
 
 /**
  * Because tiles neighbour each other differently at each breakpoint, no single

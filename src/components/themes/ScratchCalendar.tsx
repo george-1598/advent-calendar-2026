@@ -2,7 +2,6 @@ import { useEffect, useState, type CSSProperties } from 'react';
 import { PendingMark, PendingNote } from '../calendar/Pending';
 import { useExplored } from '../../lib/explored';
 import { playChime, playSweep } from '../../lib/sound';
-import { rng, shuffle } from '../../lib/random';
 import { TOTAL_DAYS, formatCountdown, unlockAt } from '../../lib/time';
 import type { CalendarController } from '../calendar/controller';
 import SoundToggle from '../SoundToggle';
@@ -10,9 +9,11 @@ import { KeyClue, useUnlocks } from '../../lib/unlocks';
 import { StarIcon } from '../icons';
 import ScratchCard, { CardFace } from './scratch/ScratchCard';
 import { foilDataUrl } from './scratch/foil';
+import { dailyDays } from '../../lib/daily';
 
 // Cards are shuffled so you have to scratch to find today's number.
-const ORDER = shuffle(rng(1225), Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1));
+// Cards are rearranged daily.
+const ORDER = dailyDays(1225, TOTAL_DAYS);
 const FACE_COLORS = ['#B3172C', '#0F4D33', '#1F3A64'];
 
 export default function ScratchCalendar({ ctrl }: { ctrl: CalendarController }) {
