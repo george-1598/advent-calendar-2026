@@ -5,6 +5,7 @@ import { useProgress } from '../lib/progress';
 import { useCalendars } from '../lib/calendars';
 import { TOTAL_DAYS } from '../lib/time';
 import { playChime } from '../lib/sound';
+import { BadgeGameBanner, useBadgeGame } from './BadgeGame';
 
 interface FinaleInfo {
   unlocked: boolean;
@@ -40,6 +41,14 @@ export function useLetters(): { letter: string; day: number; gaveUp: boolean }[]
 }
 
 export function FinaleBanner() {
+  const [game, setGame] = useBadgeGame();
+  if (!game) return null;
+  if (game.has_phrase) return <BadgeGameBanner game={game} onUpdate={setGame} />;
+  return <LegacyFinaleBanner />;
+}
+
+/** Calendars without a badge phrase: the finale opens once every filled-in day is done. */
+function LegacyFinaleBanner() {
   const finale = useFinale();
   const [open, setOpen] = useState(false);
   if (!finale?.unlocked) return null;

@@ -4,6 +4,7 @@ import { useProgress } from '../lib/progress';
 import { StarIcon } from './icons';
 import CalendarSwitcher from './CalendarSwitcher';
 import { FinaleBanner, useLetters } from './Finale';
+import { BadgeGameProgress, useBadgeGame } from './BadgeGame';
 import { WrappedBanner } from './Wrapped';
 import { useCalendars } from '../lib/calendars';
 
@@ -11,6 +12,7 @@ export default function BadgesView() {
   const { byDay, solvedCount } = useProgress();
   const { current, calendars } = useCalendars();
   const letters = useLetters();
+  const [game] = useBadgeGame();
   const days = Array.from({ length: TOTAL_DAYS }, (_, i) => i + 1);
 
   return (
@@ -18,6 +20,7 @@ export default function BadgesView() {
       <h1 className="page-title">My badges</h1>
       <CalendarSwitcher />
       <FinaleBanner />
+      {game && <BadgeGameProgress game={game} />}
       <WrappedBanner />
       <p className="page-lead">
         {solvedCount} of {TOTAL_DAYS} collected{calendars.length > 1 ? ` in ${current.is_main ? current.title : current.is_owner ? 'your calendar' : `${current.owner_name ?? 'a friend'}’s calendar`}` : ''}. Solve a day’s quest to earn its badge.

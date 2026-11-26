@@ -6,6 +6,7 @@ import { openDayPage } from '../../lib/route';
 import type { Player } from './PlayersTab';
 import { EditorCalendar, useEditorCalendar } from './editorCalendar';
 import { TEMPLATES } from './templates';
+import BadgePhraseEditor from './BadgePhraseEditor';
 import { MAIN_CALENDAR, useCalendars } from '../../lib/calendars';
 import GameFields, { cleanAnswers, validateGame } from './GameFields';
 import { GAME_KINDS, type GameContent, type GameKind } from '../games/types';
@@ -103,6 +104,7 @@ export default function QuestsTab({
   return (
     <EditorCalendar.Provider value={calendarId}>
     <div className="admin-stack">
+      <BadgePhraseEditor calendarId={calendarId} />
       <FinaleEditor calendarId={calendarId} />
       <p className="admin-muted">
         {ready} of 25 days have a default quest. Each day can also be customised per player. Answers are checked
@@ -430,12 +432,6 @@ function QuestEditor({
       <p className="admin-tip">
         💡 Write <code>{'{name}'}</code> anywhere (title, question, gift, hints) and each player sees their own first name.
       </p>
-      <div className="admin-row">
-        <label className="admin-narrow">
-          <span>Badge letter</span>
-          <input value={form.letter} maxLength={2} onChange={(e) => set('letter', e.target.value.toUpperCase())} placeholder={isDefault ? '' : def.letter} />
-        </label>
-      </div>
 
       {message && <p className={message.ok ? 'form-info' : 'form-error'}>{message.text}</p>}
       <div className="admin-actions">
@@ -509,8 +505,8 @@ function FinaleEditor({ calendarId }: { calendarId: string }) {
       {open && (
         <div className="finale-editor-body">
           <p className="admin-muted">
-            When a player has finished every day you filled in (from December 24), their badge letters come together into a word
-            and this message appears. Use the badge letters to spell something, e.g. J-O-Y or a name.
+            Shown when a player unscrambles your badge phrase (or, without a phrase, once they’ve finished every day you filled in,
+            from December 24).
           </p>
           <textarea rows={4} maxLength={1000} value={text} onChange={(e) => setText(e.target.value)} placeholder="Merry Christmas {name}! Your last surprise is behind the sofa 🎄" />
           {message && <p className={message.ok ? 'form-info' : 'form-error'}>{message.text}</p>}

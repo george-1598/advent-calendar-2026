@@ -1279,3 +1279,32 @@ h1, h2, p { margin: 0; }
 .finale-editor-body p { margin: 0; }
 .finale-editor-body textarea { padding: 10px 12px; border-radius: 10px; border: 2px solid #e2d9ca; font: inherit; font-size: 15px; resize: vertical; }
 .admin-warn-text { color: #b3261e !important; }
+
+/* Badge phrase editor */
+.badge-phrase-input { padding: 12px 14px; border-radius: 12px; border: 2px solid #e2d9ca; font-size: 17px; font-weight: 600; background: #fff; min-width: 0; }
+.badge-filler { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px; color: #6f6a62; }
+.badge-filler button { width: 38px; height: 38px; border-radius: 10px; background: #f3ede2; font-size: 18px; font-weight: 700; }
+.badge-filler button[aria-pressed='true'] { background: #fff; box-shadow: 0 0 0 2px #7a231c; }
+.badge-preview, .bg-words { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 14px; }
+.badge-preview-word, .bg-word { display: flex; gap: 3px; }
+.badge-preview-word span { min-width: 22px; height: 28px; display: grid; place-items: center; padding: 0 3px; border-radius: 6px; background: #7a231c; color: #fff; font-weight: 700; font-size: 14px; }
+.badge-by-day summary { cursor: pointer; font-size: 13.5px; color: #6f6a62; }
+.badge-by-day ol { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 4px; }
+.badge-by-day li { display: flex; justify-content: space-between; padding: 4px 8px; border-radius: 6px; background: #f7f2ea; font-size: 13px; }
+
+/* Badge game */
+.finale-banner--game { background: linear-gradient(120deg, #1d4e9e, #5b3a8a); }
+.badge-game { gap: 14px; }
+.bg-help { margin: -6px 0 0; font-size: 13.5px; color: #8a847c; }
+.bg-slot { min-width: 30px; height: 38px; display: grid; place-items: center; padding: 0 4px; border-radius: 8px; border: 2px dashed #d8cdbb; background: #faf6ef; font-weight: 800; font-size: 18px; color: var(--ink); }
+.bg-slot.is-filled { border-style: solid; border-color: #7a231c; background: #fff; }
+.bg-slot.is-solved { border: 0; background: #1e7a46; color: #fff; animation: pop-in 0.4s var(--ease-out) both; }
+.bg-pool { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; padding-top: 12px; border-top: 1px solid #ece4d6; width: 100%; }
+.bg-tile { min-width: 36px; height: 42px; padding: 0 6px; border-radius: 10px; background: #7a231c; color: #fff; font-weight: 800; font-size: 19px; box-shadow: 0 3px 0 #4e1511; transition: transform 0.1s, opacity 0.2s; }
+.bg-tile:active { transform: translateY(2px); box-shadow: 0 1px 0 #4e1511; }
+.bg-tile:disabled { opacity: 0.18; box-shadow: none; }
+.bg-feedback { margin: 0; font-weight: 600; color: #7a231c; }
+.bg-phrase { margin: 0; font-size: 20px; font-weight: 700; color: #1e5a3c; }
+.bg-progress { max-width: 520px; margin: 0 auto 14px; padding: 10px 14px; border-radius: 12px; background: #eef5ff; color: #1f3a5f; text-align: center; font-size: 14px; }
+.badge-game .game-row { flex-wrap: wrap; justify-content: center; }
+.finale-card { --day: #7a231c; }
