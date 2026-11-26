@@ -30,7 +30,9 @@ up in **Admin → Health**.
 ## C. Friend calendar (test account)
 In the private window / second device:
 - [ ] 10. Create an account (any name). You land on the calendar straight away (no email step).
-- [ ] 11. Footer → **🎁 Make a calendar for friends** → name it → **Create my calendar**.
+- [ ] 11. Footer says **✋ Ask to make your own calendar**. Tap it, write a note, **Ask to become a creator**. The button now says **⏳ Calendar request sent**.
+- [ ] 11a. Your phone: **Admin** shows "<test name> wants to make a calendar" → **Approve**. (In **Players**, their badge says *creator*.)
+- [ ] 11b. Test account: reload. The button says **🎁 Make a calendar for friends** → name it → **Create my calendar**.
 - [ ] 12. **+ Create an invite link** → **Share / copy**. Send the link to yourself.
 - [ ] 13. Fill in a day that's already open *for testing*, e.g. set its game to Riddle with an easy answer and a gift.
 
