@@ -840,7 +840,7 @@ function SuspectsFields({ content, onChange }: { content: GameContent; onChange:
     // The answer (culprit's position) is worked out automatically when the puzzle has one solution.
     onChange({ ...content, suspects: next }, fits.length === 1 ? [String(fits[0].culprit)] : []);
   };
-  // A new suspects game starts from the example (Alice, Bob, Carol and David).
+  // A new suspects game starts from the example (George, Gabii, Carla and Ade).
   useEffect(() => {
     if (!content.suspects) commit(EXAMPLE_SUSPECTS);
     // eslint-disable-next-line react-hooks/exhaustive-deps
