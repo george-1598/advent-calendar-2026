@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import DayPage from './components/DayPage';
 import { goHome, openAdmin, savedScroll, useRoute } from './lib/route';
-import AdminPage from './components/admin/AdminPage';
+// Admin pages (and their map/QR tools) load only for admins who open them.
+const AdminPage = lazy(() => import('./components/admin/AdminPage'));
 import ThemePicker from './components/ThemePicker';
 import UnlockCelebration from './components/UnlockCelebration';
 import Calendar from './components/Calendar';
@@ -77,9 +78,11 @@ export default function App() {
         ) : (
           <>
             {route.name === 'admin' ? (
-              <AdminPage tab={route.tab} />
+              <Suspense fallback={<p className="admin-muted">Loading…</p>}>
+                <AdminPage tab={route.tab} />
+              </Suspense>
             ) : route.name === 'day' ? (
-              <DayPage day={route.day} />
+              <DayPage day={route.day} code={route.code} />
             ) : (
               view === 'calendar' && <Calendar onNavigate={navigate} />
             )}

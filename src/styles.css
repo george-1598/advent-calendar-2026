@@ -847,3 +847,142 @@ h1, h2, p { margin: 0; }
 .admin-player-results small { color: #9a948b; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-player-results em { font-style: normal; font-size: 11px; color: #b3261e; }
 .admin-player-results .admin-muted { padding: 8px 10px; }
+
+/* =================================================================
+   Games
+   ================================================================= */
+.game { display: grid; gap: 14px; }
+.game-help { font-size: 14px; color: #7a746c !important; }
+.game-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.game-primary {
+  justify-self: center;
+  padding: 13px 26px;
+  border-radius: 12px;
+  background: var(--day);
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-size: 13px;
+}
+.game-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+.game-secondary { justify-self: center; padding: 11px 16px; border-radius: 12px; border: 1.5px solid #e2d9ca; color: #5a544c; font-weight: 500; font-size: 14px; }
+.game-secondary:disabled { opacity: 0.4; }
+
+/* Wordle */
+.wordle-grid { display: grid; gap: 6px; justify-content: center; }
+.wordle-row { display: grid; grid-template-columns: repeat(var(--len), minmax(0, 52px)); gap: 6px; }
+.wordle-row.is-shaking { animation: shake 0.45s; }
+.wordle-tile {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border: 2px solid #e2d9ca;
+  border-radius: 6px;
+  font-size: clamp(18px, 6vw, 26px);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: #fff;
+}
+.wordle-tile.is-typed { border-color: #a39b91; animation: tile-pop 0.12s; }
+.wordle-tile.is-g, .wordle-tile.is-y, .wordle-tile.is-b { color: #fff; border-color: transparent; animation: tile-flip 0.5s both; }
+.wordle-tile.is-g { background: #2e8b57; }
+.wordle-tile.is-y { background: #d9a520; }
+.wordle-tile.is-b { background: #8a847c; }
+@keyframes tile-pop { 50% { transform: scale(1.1); } }
+@keyframes tile-flip { 0% { transform: rotateX(90deg); } 100% { transform: none; } }
+.wordle-keys { display: grid; gap: 6px; user-select: none; }
+.wordle-keyrow { display: flex; gap: 4px; justify-content: center; }
+.wordle-key {
+  flex: 1;
+  max-width: 40px;
+  height: 46px;
+  border-radius: 6px;
+  background: #e8e1d5;
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 14px;
+}
+.wordle-key.is-wide { max-width: 64px; flex: 1.6; font-size: 12px; }
+.wordle-key.is-g { background: #2e8b57; color: #fff; }
+.wordle-key.is-y { background: #d9a520; color: #fff; }
+.wordle-key.is-b { background: #8a847c; color: #fff; }
+
+/* Song */
+.song-player { display: grid; gap: 12px; justify-items: center; padding: 16px; border-radius: 14px; background: #f6f1e7; }
+.song-play { padding: 12px 22px; border-radius: 999px; background: var(--day); color: #fff; font-weight: 600; font-size: 15px; }
+.song-play:disabled { opacity: 0.8; }
+.song-bars { display: flex; align-items: flex-end; gap: 3px; height: 46px; width: 100%; justify-content: center; }
+.song-bars span { width: 6px; border-radius: 3px; background: #d9cfbf; transition: background 0.15s, transform 0.15s; }
+.song-bars span.is-past { background: color-mix(in srgb, var(--day), #fff 50%); }
+.song-bars span.is-on { background: var(--day); transform: scaleY(1.25); }
+.song-audio { width: 100%; }
+
+/* Map */
+.map-box { height: min(60vh, 380px); border-radius: 14px; overflow: hidden; border: 2px solid #e2d9ca; z-index: 0; }
+.map-box--admin { height: 300px; }
+.map-pin { font-size: 28px; line-height: 1; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.4)); }
+
+/* Quiz */
+.quiz-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; counter-reset: q; }
+.quiz-q { display: grid; gap: 8px; }
+.quiz-text { font-weight: 600; color: var(--ink) !important; }
+.quiz-text::before { counter-increment: q; content: counter(q) '. '; color: var(--day); }
+.quiz-options { display: grid; gap: 6px; }
+.quiz-option { padding: 12px 14px; border-radius: 10px; border: 2px solid #e2d9ca; background: #fff; text-align: left; font-size: 15px; color: var(--ink); }
+.quiz-option.is-chosen { border-color: var(--day); background: color-mix(in srgb, var(--day), #fff 88%); font-weight: 600; }
+
+/* Timeline */
+.timeline-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.timeline-item { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 10px 10px 10px 12px; border-radius: 12px; background: #fff; border: 2px solid #e2d9ca; }
+.timeline-n { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--day); color: #fff; font-weight: 700; font-size: 13px; }
+.timeline-text { color: var(--ink); }
+.timeline-moves { display: flex; gap: 4px; }
+.timeline-moves button { width: 36px; height: 36px; border-radius: 8px; background: #f1ebe0; font-size: 16px; }
+.timeline-moves button:disabled { opacity: 0.3; }
+
+/* Anagram */
+.anagram-answer { min-height: 58px; display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; align-items: center; padding: 8px; border-radius: 12px; border: 2px dashed #e2d9ca; }
+.anagram-answer.is-wrong { animation: shake 0.45s; border-color: #d2443a; }
+.anagram-empty { color: #a39b91; font-size: 14px; }
+.anagram-tiles { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.anagram-tile, .anagram-slot {
+  width: 44px;
+  height: 48px;
+  border-radius: 8px;
+  font-size: 22px;
+  font-weight: 700;
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.15);
+}
+.anagram-tile { background: #fff4d6; color: #6b4a00; border: 2px solid #ecd9a8; }
+.anagram-tile:disabled { opacity: 0.25; box-shadow: none; }
+.anagram-slot { background: var(--day); color: #fff; }
+
+/* Treasure */
+.treasure-clue { display: grid; justify-items: center; gap: 8px; padding: 18px; border-radius: 14px; text-align: center; background: repeating-linear-gradient(45deg, #fbf3df 0 12px, #f6ecd2 12px 24px); border: 2px dashed #c9a86a; }
+.treasure-icon { font-size: 36px; }
+
+/* Admin game editors */
+.admin-game { display: grid; gap: 12px; padding: 12px; border-radius: 12px; background: #f8f4ec; }
+.admin-check { display: flex !important; align-items: center; gap: 10px; }
+.admin-check input { width: auto !important; }
+.admin-check span { text-transform: none !important; letter-spacing: 0 !important; font-size: 14px !important; font-weight: 500 !important; color: #3f3a34 !important; }
+.admin-kind { font-style: normal; font-size: 11px; color: var(--teal); font-weight: 600; }
+.admin-quest-title strong + .admin-kind { display: block; }
+.admin-bad { color: #d2443a; }
+.admin-test { align-self: end; height: 44px; padding: 0 16px; border-radius: 10px; background: var(--teal); color: #fff; font-weight: 600; }
+.admin-preview-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 14px; }
+.admin-letters { letter-spacing: 0.3em; font-size: 18px; }
+.admin-map { display: grid; gap: 8px; }
+.admin-quiz { display: grid; gap: 10px; }
+.admin-quiz-q { display: grid; gap: 8px; border: 1.5px solid #e2d9ca; border-radius: 10px; padding: 10px 12px; margin: 0; }
+.admin-quiz-q legend { font-size: 12px; font-weight: 600; color: #6f6a64; text-transform: uppercase; letter-spacing: 0.06em; }
+.admin-quiz-opt { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 8px; }
+.admin-quiz-opt input[type='radio'] { width: 20px !important; height: 20px; accent-color: var(--teal); }
+.admin-qr { display: grid; gap: 10px; }
+.admin-qr-title { font-size: 13px; font-weight: 600; color: #6f6a64; }
+.admin-qr figure { margin: 0; display: grid; grid-template-columns: 120px 1fr; gap: 12px; align-items: center; }
+.admin-qr img { width: 120px; border-radius: 8px; border: 1px solid #e2d9ca; }
+.admin-qr figcaption { display: grid; gap: 4px; }
+.admin-qr a { color: var(--teal); font-size: 14px; }

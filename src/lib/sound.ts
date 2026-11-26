@@ -20,8 +20,8 @@ export function setSoundEnabled(on: boolean) {
   }
 }
 
-function audio(): AudioContext | null {
-  if (!soundEnabled()) return null;
+function audio(force = false): AudioContext | null {
+  if (!force && !soundEnabled()) return null;
   if (!ctx) {
     const AC =
       window.AudioContext ?? (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
@@ -304,8 +304,8 @@ export function playRatchet() {
 }
 
 /** One music-box tine: a bright sine with metallic overtones and a long ring. */
-export function playMusicNote(midi: number, volume = 0.11) {
-  const c = audio();
+export function playMusicNote(midi: number, volume = 0.11, force = false) {
+  const c = audio(force);
   if (!c) return;
   const f = 440 * Math.pow(2, (midi - 69) / 12) * (1 + (Math.random() - 0.5) * 0.002);
   const t = c.currentTime;

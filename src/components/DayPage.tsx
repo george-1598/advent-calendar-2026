@@ -1,4 +1,6 @@
-import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
+import Game from './games/Game';
+import type { GameContent } from './games/types';
 import { supabase } from '../lib/supabase';
 import { useProgress } from '../lib/progress';
 import { useAuth } from '../lib/auth';
@@ -11,16 +13,16 @@ interface Quest {
   day: number;
   title: string;
   kind: string;
-  content: { prompt?: string };
+  content: GameContent;
 }
 
 const FALLBACK_COLOR = '#7A231C';
 
 /** A full page for one day: hero header, the day's quest/game, and the gift once solved. */
-export default function DayPage({ day }: { day: number }) {
+export default function DayPage({ day, code }: { day: number; code?: string }) {
   const now = useNow();
   const { profile } = useAuth();
-  const { byDay, submit } = useProgress();
+  const { byDay } = useProgress();
   const progress = byDay[day];
   const solved = Boolean(progress?.solved_at);
   const canOpen = isUnlocked(day, now) || Boolean(profile?.is_admin);
@@ -33,10 +35,6 @@ export default function DayPage({ day }: { day: number }) {
   });
 
   const [quest, setQuest] = useState<Quest | null | undefined>(undefined);
-  const [answer, setAnswer] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
-  const [wrongPulse, setWrongPulse] = useState(0);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -48,8 +46,6 @@ export default function DayPage({ day }: { day: number }) {
 
   useEffect(() => {
     setQuest(undefined);
-    setAnswer('');
-    setFeedback(null);
     if (!canOpen) return;
     let cancelled = false;
     // The server returns this player's own version of the quest (or the default).
@@ -60,23 +56,6 @@ export default function DayPage({ day }: { day: number }) {
       cancelled = true;
     };
   }, [day, canOpen]);
-
-  const onSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!answer.trim()) return;
-    setBusy(true);
-    setFeedback(null);
-    try {
-      const result = await submit(day, answer);
-      if (!result.correct) {
-        setFeedback('Not quite. Try again!');
-        setWrongPulse((n) => n + 1);
-      }
-    } catch (err) {
-      setFeedback(err instanceof Error ? err.message : 'Something went wrong');
-    }
-    setBusy(false);
-  };
 
   const prev = day > 1 && (isUnlocked(day - 1, now) || profile?.is_admin) ? day - 1 : null;
   const next = day < TOTAL_DAYS && (isUnlocked(day + 1, now) || profile?.is_admin) ? day + 1 : null;
@@ -118,11 +97,7 @@ export default function DayPage({ day }: { day: number }) {
 
         {canOpen && quest && (
           <div className="day-card">
-            {/* The game area: today a riddle; later each day's kind can render its own mini-game here. */}
-            <div className={`day-game day-game--${quest.kind}`}>
-              {quest.content.prompt && <p className="day-prompt">{quest.content.prompt}</p>}
-            </div>
-
+            <Game key={`${day}-${quest.kind}`} kind={quest.kind} day={day} content={quest.content ?? {}} solved={solved} code={code} />
             {solved ? (
               <div className="day-reward">
                 <div className="day-reward-badge">
@@ -136,27 +111,11 @@ export default function DayPage({ day }: { day: number }) {
                 <p className="day-reward-text">{progress?.reward}</p>
               </div>
             ) : (
-              <>
-                <form className="day-answer" onSubmit={onSubmit}>
-                  <input
-                    key={wrongPulse}
-                    className={wrongPulse ? 'is-wrong' : undefined}
-                    value={answer}
-                    onChange={(e) => setAnswer(e.target.value)}
-                    placeholder="Your answer"
-                    aria-label="Your answer"
-                    autoComplete="off"
-                    autoCapitalize="off"
-                  />
-                  <button disabled={busy || !answer.trim()}>{busy ? '…' : 'Unlock'}</button>
-                </form>
-                {feedback && <p className="form-error">{feedback}</p>}
-                {progress?.hint && (
-                  <p className="day-hint">
-                    <strong>Hint:</strong> {progress.hint}
-                  </p>
-                )}
-              </>
+              progress?.hint && (
+                <p className="day-hint">
+                  <strong>Hint:</strong> {progress.hint}
+                </p>
+              )
             )}
           </div>
         )}

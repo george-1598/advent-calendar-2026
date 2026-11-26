@@ -6,16 +6,17 @@ import { useEffect, useState } from 'react';
  *   #/day/7     → the page for December 7
  */
 export type AdminTab = 'players' | 'quests';
-export type Route = { name: 'home' } | { name: 'day'; day: number } | { name: 'admin'; tab: AdminTab };
+export type Route = { name: 'home' } | { name: 'day'; day: number; code?: string } | { name: 'admin'; tab: AdminTab };
 
 const ROUTE_EVENT = 'advent-route';
 const COLOR_KEY = 'advent-day-color';
 
 export function parseRoute(hash = window.location.hash): Route {
-  const m = hash.match(/^#\/day\/(\d{1,2})$/);
+  // #/day/7 or #/day/7/CODE (treasure-hunt QR codes carry the code).
+  const m = hash.match(/^#\/day\/(\d{1,2})(?:\/([^/?#]+))?$/);
   if (m) {
     const day = Number(m[1]);
-    if (day >= 1 && day <= 25) return { name: 'day', day };
+    if (day >= 1 && day <= 25) return { name: 'day', day, code: m[2] ? decodeURIComponent(m[2]) : undefined };
   }
   const a = hash.match(/^#\/admin(?:\/(players|quests))?$/);
   if (a) return { name: 'admin', tab: (a[1] as AdminTab | undefined) ?? 'players' };

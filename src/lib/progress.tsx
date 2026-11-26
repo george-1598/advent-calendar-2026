@@ -20,6 +20,13 @@ export interface DayProgress {
 
 export interface SubmitResult extends Omit<DayProgress, 'day'> {
   correct: boolean;
+  /** Wordle: one letter per tile — g (right place), y (wrong place), b (not in word). */
+  pattern?: string;
+  /** Map pin: how far the guess was from the spot. */
+  distance_m?: number;
+  /** Quiz / timeline: how many were right. */
+  right?: number;
+  total?: number;
 }
 
 interface ProgressState {

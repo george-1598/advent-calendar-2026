@@ -4,11 +4,13 @@ import { formatCountdown } from '../../lib/time';
 import { useNow } from '../../lib/useNow';
 import { openDayPage } from '../../lib/route';
 import type { Player } from './PlayersTab';
+import GameFields, { validateGame } from './GameFields';
+import { GAME_KINDS, type GameContent, type GameKind } from '../games/types';
 
 interface QuestFields {
   title: string | null;
   kind: string | null;
-  content: { prompt?: string } | null;
+  content: GameContent | null;
   answers: string[] | null;
   reward: string | null;
   hint: string | null;
@@ -24,18 +26,18 @@ interface AdminQuest extends QuestFields {
   overrides: Override[];
 }
 
-/** The form's editable values (strings; empty = not set). */
+/** The form's editable values (empty = not set). */
 interface Form {
   title: string;
   kind: string;
-  prompt: string;
-  answers: string;
+  content: GameContent;
+  answers: string[];
   reward: string;
   hint: string;
   letter: string;
+  /** Player only: whether they get their own game content (vs. the default game). */
+  customGame: boolean;
 }
-
-const KINDS = [{ id: 'riddle', label: 'Riddle / question (type the answer)' }];
 const DEFAULT = 'default';
 /** Up to this many players, show them all as buttons; beyond it, show a search box. */
 const SHOW_ALL_UP_TO = 6;
@@ -43,11 +45,12 @@ const SHOW_ALL_UP_TO = 6;
 const toForm = (q: QuestFields | undefined, fallbackKind = ''): Form => ({
   title: q?.title ?? '',
   kind: q?.kind ?? fallbackKind,
-  prompt: q?.content?.prompt ?? '',
-  answers: (q?.answers ?? []).join('\n'),
+  content: q?.content ?? {},
+  answers: q?.answers ?? [],
   reward: q?.reward ?? '',
   hint: q?.hint ?? '',
   letter: q?.badge_letter ?? '',
+  customGame: Boolean(q?.content || q?.answers),
 });
 
 export default function QuestsTab() {
@@ -88,6 +91,7 @@ export default function QuestsTab() {
               <span className="admin-quest-day">{q.day}</span>
               <span className="admin-quest-title">
                 <strong>{q.title ?? (q.overrides.length ? 'Only for some players' : 'No quest yet')}</strong>
+                {q.title && <em className="admin-kind">{GAME_KINDS.find((g) => g.id === (q.kind ?? 'riddle'))?.label.split(' (')[0]}</em>}
                 <small>
                   {live ? 'Opened' : `Opens in ${formatCountdown(new Date(q.unlock_at).getTime() - now)}`}
                   {(q.title || q.overrides.length > 0) && ` · solved by ${q.solved_by}`}
@@ -146,17 +150,26 @@ function QuestEditor({
   // Placeholder text: for a player, show what they'd get from the default.
   const ph = (fromDefault: string, fallback: string) => (isDefault ? fallback : fromDefault ? `Default: ${fromDefault}` : 'Same as default (empty)');
 
+  // The game type in effect for this target (a player inherits the default's unless changed).
+  const kind = ((isDefault ? form.kind : form.kind || def.kind) || 'riddle') as GameKind;
+  const kindChanged = !isDefault && Boolean(form.kind) && form.kind !== def.kind;
+  const gameIsCustom = isDefault || form.customGame || kindChanged;
+
   const save = async (e: FormEvent) => {
     e.preventDefault();
-    setBusy(true);
     setMessage(null);
-    const answers = form.answers.split('\n').map((a) => a.trim()).filter(Boolean);
+    const answers = form.answers.map((a) => a.trim()).filter(Boolean);
+    if (gameIsCustom) {
+      const problem = validateGame(kind, form.content, answers);
+      if (problem) return setMessage({ ok: false, text: problem });
+    }
+    setBusy(true);
     const { error } = isDefault
       ? await supabase.rpc('admin_save_quest', {
           p_day: quest.day,
           p_title: form.title,
-          p_kind: form.kind || 'riddle',
-          p_content: { ...(quest.content ?? {}), prompt: form.prompt },
+          p_kind: kind,
+          p_content: form.content,
           p_answers: answers,
           p_reward: form.reward,
           p_hint: form.hint,
@@ -167,8 +180,8 @@ function QuestEditor({
           p_day: quest.day,
           p_title: form.title,
           p_kind: form.kind,
-          p_content: form.prompt ? { prompt: form.prompt } : null,
-          p_answers: answers,
+          p_content: gameIsCustom ? form.content : null,
+          p_answers: gameIsCustom ? answers : [],
           p_reward: form.reward,
           p_hint: form.hint,
           p_badge_letter: form.letter,
@@ -211,7 +224,8 @@ function QuestEditor({
   };
 
   return (
-    <form className="admin-editor" onSubmit={save}>
+    // noValidate: the editor validates itself (browser checks could silently block saving).
+    <form className="admin-editor" onSubmit={save} noValidate>
       <div className="admin-targets" role="tablist" aria-label="Who sees this">
         <span className="admin-targets-label">Who sees this</span>
         <div className="admin-target-chips">
@@ -288,29 +302,56 @@ function QuestEditor({
       </label>
       <label>
         <span>Game type</span>
-        <select value={form.kind} onChange={(e) => set('kind', e.target.value)}>
-          {!isDefault && <option value="">Same as default</option>}
-          {KINDS.map((k) => (
+        <select
+          value={form.kind}
+          onChange={(e) => {
+            const k = e.target.value;
+            // A different game type starts from a blank game.
+            setDrafts((d) => ({ ...d, [target]: { ...form, kind: k, content: {}, answers: [], customGame: Boolean(k) } }));
+            setMessage(null);
+          }}
+        >
+          {!isDefault && <option value="">Same as default ({GAME_KINDS.find((g) => g.id === (def.kind || 'riddle'))?.label})</option>}
+          {GAME_KINDS.map((k) => (
             <option key={k.id} value={k.id}>
               {k.label}
             </option>
           ))}
         </select>
-        <small>More game types (jigsaw, wordle, memory…) will appear here as they’re built.</small>
       </label>
-      <label>
-        <span>Riddle / question</span>
-        <textarea rows={4} value={form.prompt} onChange={(e) => set('prompt', e.target.value)} placeholder={ph(def.prompt, 'What the player sees')} />
-      </label>
-      <label>
-        <span>Accepted answers (one per line)</span>
-        <textarea
-          rows={3}
-          value={form.answers}
-          onChange={(e) => set('answers', e.target.value)}
-          placeholder={isDefault ? 'snowman\na snowman' : def.answers ? `Default:\n${def.answers}` : 'Same as default (empty)'}
-        />
-      </label>
+
+      {!isDefault && !kindChanged && (
+        <label className="admin-check">
+          <input
+            type="checkbox"
+            checked={form.customGame}
+            onChange={(e) =>
+              setDrafts((d) => ({
+                ...d,
+                // Start their custom game from a copy of the default.
+                [target]: { ...form, customGame: e.target.checked, content: e.target.checked ? structuredClone(def.content) : {}, answers: e.target.checked ? [...def.answers] : [] },
+              }))
+            }
+          />
+          <span>Give {player?.name} their own version of the game (riddle, answers…)</span>
+        </label>
+      )}
+
+      {gameIsCustom ? (
+        <div className="admin-game">
+          <GameFields
+            key={`${target}-${kind}`}
+            day={quest.day}
+            kind={kind}
+            content={form.content}
+            answers={form.answers}
+            onChange={(content, answers) => setDrafts((d) => ({ ...d, [target]: { ...(d[target] ?? form), content, answers } }))}
+          />
+        </div>
+      ) : (
+        <p className="admin-muted">{player?.name} plays the default game{def.content.prompt ? `: “${def.content.prompt}”` : ''}.</p>
+      )}
+
       <label>
         <span>Gift / surprise (shown when solved)</span>
         <textarea rows={2} value={form.reward} onChange={(e) => set('reward', e.target.value)} placeholder={ph(def.reward, 'Look under your pillow 🎁')} />
