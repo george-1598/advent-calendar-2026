@@ -1,24 +1,30 @@
 import { useCallback, useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useCalendars } from '../../lib/calendars';
-import { goHome, openMine, type MineTab } from '../../lib/route';
-import PlayersTab from './PlayersTab';
+import { goHome, inviteUrl, openMine, type MineTab } from '../../lib/route';
+import { useNow } from '../../lib/useNow';
+import PlayersTab, { ago } from './PlayersTab';
 import QuestsTab from './QuestsTab';
+import ActivityFeed, { type Activity } from './ActivityFeed';
+import Reminders, { type DaySummary } from './Reminders';
 
 interface MyCalendar {
   id: string;
   title: string;
-  members: { email: string; name: string | null }[];
+  members: { user_id: string; name: string; joined_at: string }[];
+  invites: { token: string; created_at: string }[];
 }
 
 const MAX_FRIENDS = 3;
-const SITE = `${window.location.origin}${import.meta.env.BASE_URL}`;
 
 /** The signed-in user's own calendar for up to 3 friends. */
 export default function MyCalendarPage({ tab }: { tab: MineTab }) {
   const { refresh: refreshCalendars } = useCalendars();
   const [cal, setCal] = useState<MyCalendar | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
+  const [days, setDays] = useState<DaySummary[] | null>(null);
+  const [activity, setActivity] = useState<Activity | null>(null);
+  const [focusDay, setFocusDay] = useState<{ day: number; at: number } | null>(null);
 
   const load = useCallback(() => {
     supabase.rpc('my_calendar').then(({ data, error }) => {
@@ -27,6 +33,20 @@ export default function MyCalendarPage({ tab }: { tab: MineTab }) {
     });
   }, []);
   useEffect(load, [load]);
+
+  const calId = cal?.id;
+  const loadDays = useCallback(() => {
+    if (!calId) return;
+    supabase.rpc('admin_quests', { p_calendar: calId }).then(({ data }) => data && setDays(data as DaySummary[]));
+  }, [calId]);
+  const loadActivity = useCallback(() => {
+    if (!calId) return;
+    supabase.rpc('calendar_activity', { p_calendar: calId }).then(({ data }) => data && setActivity(data as Activity));
+  }, [calId]);
+  useEffect(() => {
+    loadDays();
+    loadActivity();
+  }, [loadDays, loadActivity]);
 
   const changed = () => {
     load();
@@ -37,12 +57,22 @@ export default function MyCalendarPage({ tab }: { tab: MineTab }) {
   if (cal === undefined) return <section className="admin-page"><p className="admin-muted">Loading…</p></section>;
   if (cal === null) return <CreateCalendar onCreated={changed} />;
 
+  const badge = (activity?.stuck.length ?? 0) + (activity?.events.filter((e) => e.unread).length ?? 0);
+  const fill = (day: number) => {
+    setFocusDay({ day, at: Date.now() });
+    openMine('quests');
+  };
+
   return (
     <section className="admin-page">
       <CalendarTitle cal={cal} onSaved={changed} />
-      <div className="admin-tabs admin-tabs--3 mine-page-tabs" role="tablist">
+      <Reminders quests={days} onFill={fill} />
+      <div className="admin-tabs admin-tabs--4 mine-page-tabs" role="tablist">
         <button role="tab" aria-selected={tab === 'friends'} onClick={() => openMine('friends')}>
           Friends
+        </button>
+        <button role="tab" aria-selected={tab === 'activity'} onClick={() => openMine('activity')}>
+          Activity{badge > 0 && <span className="tab-badge">{badge}</span>}
         </button>
         <button role="tab" aria-selected={tab === 'quests'} onClick={() => openMine('quests')}>
           Quests
@@ -51,8 +81,9 @@ export default function MyCalendarPage({ tab }: { tab: MineTab }) {
           Progress
         </button>
       </div>
-      {tab === 'friends' && <FriendsTab cal={cal} onChanged={changed} />}
-      {tab === 'quests' && <QuestsTab calendarId={cal.id} />}
+      {tab === 'friends' && <FriendsTab cal={cal} onChanged={changed} onFill={() => openMine('quests')} />}
+      {tab === 'activity' && <ActivityFeed calendarId={cal.id} activity={activity} onChanged={loadActivity} />}
+      {tab === 'quests' && <QuestsTab calendarId={cal.id} focusDay={focusDay} onChanged={loadDays} />}
       {tab === 'players' && <PlayersTab calendarId={cal.id} />}
     </section>
   );
@@ -78,12 +109,12 @@ function CreateCalendar({ onCreated }: { onCreated: () => void }) {
         <h1 className="page-title">Make your own advent calendar</h1>
         <p>
           Create a calendar for up to {MAX_FRIENDS} friends: 25 days of riddles, games and real-life surprises that you
-          write yourself. It opens day by day, just like this one, from December 1.
+          write yourself. It opens day by day, just like this one, from December 1. You can fill it in as you go.
         </p>
         <ol className="mine-steps">
           <li>Name your calendar</li>
-          <li>Add your friends’ emails</li>
-          <li>Fill in the days: riddles, photos, maps, chains…</li>
+          <li>Send your friends an invite link</li>
+          <li>Fill in the days, starting from examples if you like</li>
         </ol>
       </div>
       <form className="admin-card mine-create" onSubmit={create}>
@@ -135,41 +166,49 @@ function CalendarTitle({ cal, onSaved }: { cal: MyCalendar; onSaved: () => void 
   );
 }
 
-function FriendsTab({ cal, onChanged }: { cal: MyCalendar; onChanged: () => void }) {
+function FriendsTab({ cal, onChanged, onFill }: { cal: MyCalendar; onChanged: () => void; onFill: () => void }) {
   const { select } = useCalendars();
-  const [email, setEmail] = useState('');
+  const now = useNow(60000);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const slots = MAX_FRIENDS - cal.members.length - cal.invites.length;
 
-  const add = async (e: FormEvent) => {
-    e.preventDefault();
+  const newLink = async () => {
     setBusy(true);
     setError(null);
-    const { error } = await supabase.rpc('add_calendar_member', { p_email: email });
+    const { error } = await supabase.rpc('create_invite');
     setBusy(false);
-    if (error) return setError(error.message);
-    setEmail('');
-    onChanged();
+    if (error) setError(error.message);
+    else onChanged();
   };
-
-  const remove = async (address: string) => {
-    const { error } = await supabase.rpc('remove_calendar_member', { p_email: address });
+  const run = async (fn: string, args: Record<string, string>) => {
+    const { error } = await supabase.rpc(fn, args);
     setRemoving(null);
     if (error) setError(error.message);
     else onChanged();
   };
 
-  const invite = `I made you an advent calendar 🎄 "${cal.title}". Create an account at ${SITE} with this email address, confirm it, and you’ll find my calendar at the top of the page.`;
-  const copy = async () => {
+  const message = (token: string) =>
+    `I made you an advent calendar 🎄 “${cal.title}”. Open this link to join (it works once, just for you): ${inviteUrl(token)}`;
+  const share = async (token: string) => {
+    const text = message(token);
     try {
-      await navigator.clipboard.writeText(invite);
-      setCopied(true);
-      window.setTimeout(() => setCopied(false), 2000);
+      if (navigator.share) {
+        await navigator.share({ title: cal.title, text });
+        return;
+      }
     } catch {
-      setError('Couldn’t copy. Select the message and copy it yourself.');
+      return; // share sheet closed
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(token);
+      window.setTimeout(() => setCopied(null), 2000);
+    } catch {
+      setError('Couldn’t copy. Press and hold the link to copy it yourself.');
     }
   };
 
@@ -184,18 +223,20 @@ function FriendsTab({ cal, onChanged }: { cal: MyCalendar; onChanged: () => void
         <h2>
           Friends <small>{cal.members.length} / {MAX_FRIENDS}</small>
         </h2>
-        {cal.members.length === 0 && <p className="admin-muted">No friends yet. Add up to {MAX_FRIENDS} by email.</p>}
+        {cal.members.length === 0 && cal.invites.length === 0 && (
+          <p className="admin-muted">No friends yet. Create an invite link for each friend (up to {MAX_FRIENDS}).</p>
+        )}
         <ul className="mine-members">
           {cal.members.map((m) => (
-            <li key={m.email}>
-              <span className={m.name ? 'mine-dot is-joined' : 'mine-dot'} aria-hidden />
+            <li key={m.user_id}>
+              <span className="mine-dot is-joined" aria-hidden />
               <span className="mine-member">
-                <strong>{m.name ?? m.email}</strong>
-                <small>{m.name ? `${m.email} · joined ✓` : 'Waiting for them to sign up with this email'}</small>
+                <strong>{m.name}</strong>
+                <small>joined {ago(m.joined_at, now)}</small>
               </span>
-              {removing === m.email ? (
+              {removing === m.user_id ? (
                 <span className="mine-confirm">
-                  <button className="admin-link admin-link--danger" onClick={() => remove(m.email)}>
+                  <button className="admin-link admin-link--danger" onClick={() => run('remove_calendar_member', { p_user: m.user_id })}>
                     Remove
                   </button>
                   <button className="admin-link" onClick={() => setRemoving(null)}>
@@ -203,38 +244,54 @@ function FriendsTab({ cal, onChanged }: { cal: MyCalendar; onChanged: () => void
                   </button>
                 </span>
               ) : (
-                <button className="admin-link" onClick={() => setRemoving(m.email)} aria-label={`Remove ${m.email}`}>
+                <button className="admin-link" onClick={() => setRemoving(m.user_id)} aria-label={`Remove ${m.name}`}>
                   ✕
                 </button>
               )}
             </li>
           ))}
+          {cal.invites.map((i) => (
+            <li key={i.token} className="mine-invite">
+              <span className="mine-dot" aria-hidden />
+              <span className="mine-member">
+                <strong>Invite link, not used yet</strong>
+                <code className="mine-link">{inviteUrl(i.token)}</code>
+                <span className="mine-invite-actions">
+                  <button className="admin-link" onClick={() => share(i.token)}>
+                    {copied === i.token ? 'Copied ✓' : 'Share / copy'}
+                  </button>
+                  {removing === i.token ? (
+                    <>
+                      <button className="admin-link admin-link--danger" onClick={() => run('revoke_invite', { p_token: i.token })}>
+                        Cancel this link
+                      </button>
+                      <button className="admin-link" onClick={() => setRemoving(null)}>
+                        Keep
+                      </button>
+                    </>
+                  ) : (
+                    <button className="admin-link admin-link--danger" onClick={() => setRemoving(i.token)}>
+                      Cancel
+                    </button>
+                  )}
+                </span>
+              </span>
+            </li>
+          ))}
         </ul>
-        {cal.members.length < MAX_FRIENDS && (
-          <form className="mine-add" onSubmit={add}>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="friend@example.com" aria-label="Friend’s email" required />
-            <button className="admin-save" disabled={busy}>
-              {busy ? 'Adding…' : 'Add'}
-            </button>
-          </form>
+        {slots > 0 && (
+          <button className="admin-save" onClick={newLink} disabled={busy}>
+            {busy ? 'Creating…' : '+ Create an invite link'}
+          </button>
         )}
+        <p className="admin-muted mine-help">
+          Each link works once: the friend opens it, signs up or logs in, and your calendar appears for them. No emails needed.
+        </p>
         {error && <p className="form-error">{error}</p>}
       </div>
 
-      <div className="admin-card mine-share">
-        <h2>Tell them about it</h2>
-        <p className="admin-muted">
-          Nothing is emailed automatically. Send your friends this message: they’ll see your calendar as soon as they sign
-          in with the email you added.
-        </p>
-        <blockquote>{invite}</blockquote>
-        <button className="admin-link" onClick={copy}>
-          {copied ? 'Copied ✓' : 'Copy message'}
-        </button>
-      </div>
-
       <div className="admin-card mine-actions">
-        <button className="admin-save" onClick={() => openMine('quests')}>
+        <button className="admin-save" onClick={onFill}>
           Fill in the days →
         </button>
         <button className="admin-link" onClick={preview}>

@@ -107,7 +107,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const { session } = useAuth();
   const signedIn = Boolean(session?.user?.id);
   useEffect(() => {
-    if (signedIn) void supabase.rpc('touch_presence', { p_theme: theme });
+    // (Supabase only sends a request once it's awaited or .then()'d.)
+    if (signedIn) supabase.rpc('touch_presence', { p_theme: theme }).then(() => undefined);
   }, [signedIn, theme]);
 
   useEffect(() => {

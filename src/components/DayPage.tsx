@@ -8,6 +8,7 @@ import { useNow } from '../lib/useNow';
 import { TOTAL_DAYS, YEAR, formatCountdown, isUnlocked, unlockAt } from '../lib/time';
 import { dayColor, goHome, openAdmin, openDayPage, openMine } from '../lib/route';
 import { StarIcon, LockIcon } from './icons';
+import { DayHints, ThanksBox } from './DayNotes';
 
 interface Quest {
   day: number;
@@ -116,6 +117,7 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
 
         {canOpen && quest && (
           <div className="day-card">
+            {!solved && <DayHints day={day} />}
             <Game key={`${calendarId}-${day}-${quest.kind}`} kind={quest.kind} day={day} content={quest.content ?? {}} solved={solved} code={code} />
             {solved ? (
               <div className="day-reward">
@@ -128,6 +130,7 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
                 </div>
                 <span className="day-reward-kicker">Solved! Your surprise</span>
                 <p className="day-reward-text">{progress?.reward}</p>
+                <ThanksBox day={day} />
               </div>
             ) : (
               progress?.hint && (

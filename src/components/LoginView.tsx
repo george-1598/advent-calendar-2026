@@ -3,8 +3,8 @@ import { supabase } from '../lib/supabase';
 
 type Mode = 'signin' | 'signup';
 
-export default function LoginView() {
-  const [mode, setMode] = useState<Mode>('signin');
+export default function LoginView({ initialMode = 'signin', lead }: { initialMode?: Mode; lead?: string }) {
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -45,9 +45,10 @@ export default function LoginView() {
         <span className="logo-script">Advent</span>
         <span className="login-sub">Calendar 2026</span>
         <p className="login-lead">
-          {mode === 'signin'
-            ? 'Welcome back. Sign in to open today’s door.'
-            : 'Create your account to start your journey.'}
+          {lead ??
+            (mode === 'signin'
+              ? 'Welcome back. Sign in to open today’s door.'
+              : 'Create your account to start your journey.')}
         </p>
       </div>
 

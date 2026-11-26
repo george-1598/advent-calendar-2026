@@ -5,6 +5,7 @@ import { useNow } from '../../lib/useNow';
 import { openDayPage } from '../../lib/route';
 import type { Player } from './PlayersTab';
 import { EditorCalendar, useEditorCalendar } from './editorCalendar';
+import { TEMPLATES } from './templates';
 import { MAIN_CALENDAR, useCalendars } from '../../lib/calendars';
 import GameFields, { cleanAnswers, validateGame } from './GameFields';
 import { GAME_KINDS, type GameContent, type GameKind } from '../games/types';
@@ -55,7 +56,17 @@ const toForm = (q: QuestFields | undefined, fallbackKind = ''): Form => ({
   customGame: Boolean(q?.content || q?.answers),
 });
 
-export default function QuestsTab({ calendarId = MAIN_CALENDAR }: { calendarId?: string }) {
+export default function QuestsTab({
+  calendarId = MAIN_CALENDAR,
+  focusDay,
+  onChanged,
+}: {
+  calendarId?: string;
+  /** Open this day's editor (e.g. from a reminder). */
+  focusDay?: { day: number; at: number } | null;
+  /** Called after quests load or change (reminders refresh). */
+  onChanged?: () => void;
+}) {
   const now = useNow(30000);
   const [quests, setQuests] = useState<AdminQuest[] | null>(null);
   const [players, setPlayers] = useState<Player[]>([]);
@@ -68,6 +79,17 @@ export default function QuestsTab({ calendarId = MAIN_CALENDAR }: { calendarId?:
       else setQuests(data as AdminQuest[]);
     });
   };
+  const saved = () => {
+    load();
+    onChanged?.();
+  };
+
+  useEffect(() => {
+    if (!focusDay || !quests) return;
+    setEditing(focusDay.day);
+    requestAnimationFrame(() => document.getElementById(`quest-day-${focusDay.day}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusDay, quests === null]);
   useEffect(() => {
     load();
     supabase.rpc('admin_dashboard', { p_calendar: calendarId }).then(({ data }) => data && setPlayers(data as Player[]));
@@ -89,7 +111,7 @@ export default function QuestsTab({ calendarId = MAIN_CALENDAR }: { calendarId?:
         const live = new Date(q.unlock_at).getTime() <= now;
         const status = !q.title ? (q.overrides.length ? 'Custom' : 'Empty') : live ? 'Live' : 'Ready';
         return (
-          <article key={q.day} className={`admin-card admin-quest is-${status.toLowerCase()}`}>
+          <article key={q.day} id={`quest-day-${q.day}`} className={`admin-card admin-quest is-${status.toLowerCase()}`}>
             <button className="admin-quest-head" onClick={() => setEditing(editing === q.day ? null : q.day)} aria-expanded={editing === q.day}>
               <span className="admin-quest-day">{q.day}</span>
               <span className="admin-quest-title">
@@ -103,7 +125,7 @@ export default function QuestsTab({ calendarId = MAIN_CALENDAR }: { calendarId?:
               </span>
               <span className={`admin-status admin-status--${status.toLowerCase()}`}>{status}</span>
             </button>
-            {editing === q.day && <QuestEditor quest={q} live={live} players={players} onSaved={load} />}
+            {editing === q.day && <QuestEditor quest={q} live={live} players={players} onSaved={saved} />}
           </article>
         );
       })}
@@ -136,6 +158,8 @@ function QuestEditor({
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [query, setQuery] = useState('');
+  // Bumped when an example loads, so game fields with their own state start fresh.
+  const [templateRev, setTemplateRev] = useState(0);
 
   const isDefault = target === DEFAULT;
   const choose = (id: string) => {
@@ -305,6 +329,32 @@ function QuestEditor({
         </p>
       )}
 
+      {isDefault && (
+        <label className="admin-template">
+          <span>✨ Start from an example (optional)</span>
+          <select
+            value=""
+            onChange={(e) => {
+              const t = TEMPLATES.find((x) => x.id === e.target.value);
+              if (!t) return;
+              setDrafts((d) => ({
+                ...d,
+                [DEFAULT]: { ...form, title: t.title, kind: t.kind, content: t.content, answers: t.answers, hint: t.hint ?? '' },
+              }));
+              setTemplateRev((r) => r + 1);
+              setMessage({ ok: true, text: 'Example loaded. Make it yours, write the gift, then save.' });
+            }}
+          >
+            <option value="">Pick an example…</option>
+            {TEMPLATES.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
+
       <label>
         <span>Title</span>
         <input value={form.title} onChange={(e) => set('title', e.target.value)} placeholder={ph(def.title, 'e.g. Where it all began')} />
@@ -349,7 +399,7 @@ function QuestEditor({
       {gameIsCustom ? (
         <div className="admin-game">
           <GameFields
-            key={`${target}-${kind}`}
+            key={`${target}-${kind}-${templateRev}`}
             day={quest.day}
             kind={kind}
             content={form.content}

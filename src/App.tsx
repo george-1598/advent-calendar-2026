@@ -11,6 +11,7 @@ import Calendar from './components/Calendar';
 import BadgesView from './components/BadgesView';
 import AboutView from './components/AboutView';
 import LoginView from './components/LoginView';
+import JoinPage from './components/JoinPage';
 import { signOut, useAuth } from './lib/auth';
 
 export type View = 'calendar' | 'badges' | 'about';
@@ -85,7 +86,9 @@ export default function App() {
       </header>
 
       <main className="main">
-        {loading ? null : !session ? (
+        {loading ? null : route.name === 'join' ? (
+          <JoinPage token={route.token} signedIn={Boolean(session)} />
+        ) : !session ? (
           <LoginView />
         ) : (
           <>
