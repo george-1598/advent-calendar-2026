@@ -10,6 +10,13 @@ import Quiz from './Quiz';
 import Timeline from './Timeline';
 import Anagram from './Anagram';
 import Treasure from './Treasure';
+import Morse from './Morse';
+import ZoomReveal from './ZoomReveal';
+import Memory from './Memory';
+import Emoji from './Emoji';
+import Hangman from './Hangman';
+import Cipher from './Cipher';
+import HotCold from './HotCold';
 
 const GAMES: Record<GameKind, ComponentType<GameProps>> = {
   riddle: Riddle,
@@ -20,6 +27,13 @@ const GAMES: Record<GameKind, ComponentType<GameProps>> = {
   timeline: Timeline,
   anagram: Anagram,
   treasure: Treasure,
+  morse: Morse,
+  zoom: ZoomReveal,
+  memory: Memory,
+  emoji: Emoji,
+  hangman: Hangman,
+  cipher: Cipher,
+  hotcold: HotCold,
 };
 
 /** Renders the right game for a day's quest. */

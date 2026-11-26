@@ -1,4 +1,6 @@
-export type GameKind = 'riddle' | 'wordle' | 'song' | 'map' | 'quiz' | 'timeline' | 'anagram' | 'treasure';
+export type GameKind =
+  | 'riddle' | 'wordle' | 'song' | 'map' | 'quiz' | 'timeline' | 'anagram' | 'treasure'
+  | 'morse' | 'zoom' | 'memory' | 'emoji' | 'hangman' | 'cipher' | 'hotcold';
 
 export const GAME_KINDS: { id: GameKind; label: string }[] = [
   { id: 'riddle', label: 'Riddle / question (type the answer)' },
@@ -9,7 +11,17 @@ export const GAME_KINDS: { id: GameKind; label: string }[] = [
   { id: 'timeline', label: 'Our timeline (put in order)' },
   { id: 'anagram', label: 'Anagram (unscramble the letters)' },
   { id: 'treasure', label: 'Treasure hunt (code / QR)' },
+  { id: 'morse', label: 'Morse lights (decode the blinking)' },
+  { id: 'zoom', label: 'Zoom reveal (guess the photo)' },
+  { id: 'memory', label: 'Memory match (photo pairs)' },
+  { id: 'emoji', label: 'Emoji riddle' },
+  { id: 'hangman', label: 'Hangman (save the snowman)' },
+  { id: 'cipher', label: 'Cipher wheel (decode the message)' },
+  { id: 'hotcold', label: 'Hot & cold (find the spot in a photo)' },
 ];
+
+/** Answer stored for memory match (finishing the board is the solution). */
+export const MEMORY_DONE = 'memory complete';
 
 export interface GameContent {
   prompt?: string;
@@ -28,6 +40,22 @@ export interface GameContent {
   items?: { id: string; text: string }[];
   /** anagram */
   letters?: string;
+  /** morse: dots/dashes, letters separated by spaces, words by " / " */
+  morse?: string;
+  /** zoom / hotcold: storage path of the photo */
+  image?: string;
+  /** zoom: where the zoom starts (0–1) and how many steps to zoom out */
+  focus?: { x: number; y: number };
+  steps?: number;
+  /** memory: storage paths of the photos (each becomes a pair) */
+  images?: string[];
+  /** emoji */
+  emojis?: string;
+  emojiHints?: string[];
+  /** hangman: the answer with letters as "_" (spaces kept) */
+  mask?: string;
+  /** cipher: the encrypted message */
+  cipher?: string;
 }
 
 export interface GameProps {

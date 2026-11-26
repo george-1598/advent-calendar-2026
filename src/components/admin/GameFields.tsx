@@ -6,6 +6,9 @@ import type { GameContent, GameKind } from '../games/types';
 import { parseMelody } from '../games/melody';
 import { useMelodyPlayer } from '../games/Song';
 import { TILE_ATTRIBUTION, TILE_URL, pinIcon } from '../games/MapPin';
+import QuestImage, { uploadQuestImage } from '../games/QuestImage';
+import { MEMORY_DONE } from '../games/types';
+import { plain, toMorse } from '../games/morseCode';
 
 interface Props {
   day: number;
@@ -45,6 +48,23 @@ export function validateGame(kind: GameKind, content: GameContent, answers: stri
       return (content.items ?? []).length >= 2 ? null : 'Add at least two moments.';
     case 'anagram':
       return answers[0]?.trim() ? null : 'Add the answer to scramble.';
+    case 'morse':
+      return content.morse ? null : 'Add the message to blink.';
+    case 'zoom':
+      if (!content.image) return 'Upload a photo.';
+      return answers.length ? null : 'Add at least one accepted answer.';
+    case 'memory':
+      return (content.images ?? []).length >= 3 ? null : 'Upload at least 3 photos (each becomes a pair).';
+    case 'emoji':
+      if (!content.emojis?.trim()) return 'Add the emojis.';
+      return answers.length ? null : 'Add at least one accepted answer.';
+    case 'hangman':
+      return plain(answers[0] ?? '').replace(/ /g, '').length >= 2 ? null : 'Add the word or phrase to guess.';
+    case 'cipher':
+      return content.cipher ? null : 'Add the secret message.';
+    case 'hotcold':
+      if (!content.image) return 'Upload a photo.';
+      return answers[0] ? null : 'Tap the photo to hide the spot.';
     default:
       return answers.length ? null : 'Add at least one accepted answer.';
   }
@@ -125,6 +145,151 @@ export default function GameFields({ day, kind, content, answers, onChange }: Pr
               Reshuffle
             </button>
           </div>
+        </>
+      );
+    }
+    case 'morse':
+      return (
+        <>
+          {prompt('Text (optional)', 'e.g. The Christmas lights are trying to tell you something…', 2)}
+          <label>
+            <span>Message the lights blink</span>
+            <input
+              value={answers[0] ?? ''}
+              onChange={(e) => onChange({ ...content, morse: toMorse(e.target.value) || undefined }, [e.target.value])}
+              placeholder="e.g. LOOK IN THE OVEN"
+            />
+            <small>Letters and numbers only. Keep it short — Morse is slow to read!</small>
+          </label>
+          {content.morse && <p className="admin-morse">{content.morse.replace(/\./g, '•').replace(/-/g, '—')}</p>}
+        </>
+      );
+    case 'zoom':
+      return (
+        <>
+          {prompt('Question', 'e.g. Where was this photo taken?', 2)}
+          <ImagePicker day={day} value={content.image} preview={false} onChange={(image) => setContent({ image })} />
+          {content.image && (
+            <FocusPicker
+              path={content.image}
+              point={content.focus ?? { x: 0.5, y: 0.5 }}
+              label="Tap where the zoom should start"
+              onPick={(focus) => setContent({ focus })}
+            />
+          )}
+          <label>
+            <span>Zoom steps</span>
+            <input type="number" min={2} max={8} value={content.steps ?? 5} onChange={(e) => setContent({ steps: Math.max(2, Math.min(8, Number(e.target.value) || 5)) })} />
+            <small>Each wrong guess (or “zoom out” tap) reveals one step more.</small>
+          </label>
+          {answerList('Accepted answers', 'e.g. Paris\nEiffel Tower')}
+        </>
+      );
+    case 'memory': {
+      const images = content.images ?? [];
+      return (
+        <>
+          {prompt('Text (optional)', 'e.g. Match our favourite moments', 2)}
+          <div className="admin-memory">
+            {images.map((path, i) => (
+              <figure key={path}>
+                <QuestImage path={path} className="admin-thumb" />
+                <button type="button" className="admin-link admin-link--danger" onClick={() => onChange({ ...content, images: images.filter((_, k) => k !== i) }, [MEMORY_DONE])}>
+                  Remove
+                </button>
+              </figure>
+            ))}
+          </div>
+          {images.length < 8 && (
+            <ImagePicker day={day} label={`Add a photo (${images.length}/8)`} onChange={(p) => p && onChange({ ...content, images: [...images, p] }, [MEMORY_DONE])} />
+          )}
+          <small>3–8 photos. Each becomes a pair; finding every pair solves the day.</small>
+        </>
+      );
+    }
+    case 'emoji':
+      return (
+        <>
+          {prompt('Text (optional)', 'e.g. Which film is this?', 2)}
+          <label>
+            <span>Emojis</span>
+            <input className="admin-emoji" value={content.emojis ?? ''} onChange={(e) => setContent({ emojis: e.target.value })} placeholder="🏠🎄👦🔫🪤" />
+          </label>
+          <label>
+            <span>Extra emoji clues (one per line, revealed after each wrong guess)</span>
+            <textarea rows={3} value={(content.emojiHints ?? []).join('\n')} onChange={(e) => setContent({ emojiHints: e.target.value.split('\n').map((x) => x.trim()).filter(Boolean) })} placeholder={'✈️👨‍👩‍👧\n😈😈'} />
+          </label>
+          {answerList('Accepted answers', 'Home Alone')}
+        </>
+      );
+    case 'hangman':
+      return (
+        <>
+          {prompt('Clue (optional)', 'e.g. Our favourite Christmas tradition', 2)}
+          <label>
+            <span>Word or phrase to guess</span>
+            <input
+              value={answers[0] ?? ''}
+              onChange={(e) => onChange({ ...content, mask: plain(e.target.value).replace(/[a-z0-9]/g, '_') }, [e.target.value])}
+              placeholder="e.g. HOT CHOCOLATE"
+            />
+            <small>She sees {content.mask ? content.mask.replace(/_/g, '▢') : 'one box per letter'}. 6 wrong letters melt the snowman.</small>
+          </label>
+        </>
+      );
+    case 'cipher': {
+      const encode = (msg: string) => {
+        const k = 3 + Math.floor(Math.random() * 20);
+        const A = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        return plain(msg).toUpperCase().replace(/[A-Z]/g, (c) => A[(A.indexOf(c) + k) % 26]);
+      };
+      return (
+        <>
+          {prompt('Text (optional)', 'e.g. A secret message from Santa’s elves…', 2)}
+          <label>
+            <span>Secret message</span>
+            <textarea rows={2} value={answers[0] ?? ''} onChange={(e) => onChange({ ...content, cipher: e.target.value.trim() ? encode(e.target.value) : undefined }, [e.target.value])} placeholder="e.g. Your gift is in the blue box" />
+          </label>
+          <div className="admin-preview-row">
+            <span>She sees:</span>
+            <strong className="admin-letters">{content.cipher || '—'}</strong>
+            <button type="button" className="admin-link" onClick={() => setContent({ cipher: encode(answers[0] ?? '') })} disabled={!answers[0]}>
+              New shift
+            </button>
+          </div>
+        </>
+      );
+    }
+    case 'hotcold': {
+      const [x, y, r] = (answers[0] ?? '').split(',').map(Number);
+      const target = answers[0] ? { x, y } : null;
+      const radius = Number.isFinite(r) && r > 0 ? r : 0.06;
+      return (
+        <>
+          {prompt('Question', 'e.g. Where’s the hidden reindeer?', 2)}
+          <ImagePicker day={day} value={content.image} preview={false} onChange={(image) => setContent({ image })} />
+          {content.image && (
+            <FocusPicker
+              path={content.image}
+              point={target}
+              radius={radius}
+              label="Tap the spot she has to find"
+              onPick={(p) => onChange(content, [`${p.x.toFixed(4)},${p.y.toFixed(4)},${radius}`])}
+            />
+          )}
+          {target && (
+            <label>
+              <span>How big the spot is</span>
+              <input
+                type="range"
+                min={0.03}
+                max={0.15}
+                step={0.01}
+                value={radius}
+                onChange={(e) => onChange(content, [`${x},${y},${e.target.value}`])}
+              />
+            </label>
+          )}
         </>
       );
     }
@@ -403,6 +568,91 @@ function TreasureQR({ day, codes }: { day: number; codes: string[] }) {
           </figcaption>
         </figure>
       ))}
+    </div>
+  );
+}
+
+function ImagePicker({
+  day,
+  value,
+  label,
+  preview = true,
+  onChange,
+}: {
+  day: number;
+  value?: string;
+  label?: string;
+  /** Show the photo here (off when a picker below already shows it). */
+  preview?: boolean;
+  onChange: (path: string | undefined) => void;
+}) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <div className="admin-image">
+      {preview && value && <QuestImage path={value} className="admin-photo" />}
+      <label className="admin-upload">
+        <input
+          type="file"
+          accept="image/*"
+          onChange={async (e) => {
+            const file = e.target.files?.[0];
+            e.target.value = '';
+            if (!file) return;
+            setBusy(true);
+            setError(null);
+            try {
+              onChange(await uploadQuestImage(day, file));
+            } catch (err) {
+              setError(err instanceof Error ? err.message : 'Upload failed');
+            }
+            setBusy(false);
+          }}
+        />
+        <span>{busy ? 'Uploading…' : label ?? (value ? 'Replace photo' : 'Upload a photo')}</span>
+      </label>
+      {error && <p className="form-error">{error}</p>}
+    </div>
+  );
+}
+
+/** Tap on a photo to pick a point (0–1 coordinates). */
+function FocusPicker({
+  path,
+  point,
+  radius,
+  label,
+  onPick,
+}: {
+  path: string;
+  point: { x: number; y: number } | null;
+  radius?: number;
+  label: string;
+  onPick: (p: { x: number; y: number }) => void;
+}) {
+  return (
+    <div className="admin-focus">
+      <small>{label}</small>
+      <div
+        className="admin-focus-frame"
+        onClick={(e) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          onPick({ x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.height });
+        }}
+      >
+        <QuestImage path={path} className="admin-photo" />
+        {point && (
+          <span
+            className="admin-focus-dot"
+            style={{
+              left: `${point.x * 100}%`,
+              top: `${point.y * 100}%`,
+              width: radius ? `${radius * 200}%` : undefined,
+              aspectRatio: '1',
+            }}
+          />
+        )}
+      </div>
     </div>
   );
 }
