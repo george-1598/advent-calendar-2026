@@ -4,7 +4,7 @@ import { useGameSubmit } from './useSubmit';
 import { statementText, type Suspect } from './suspectsLogic';
 
 const COLORS = ['#c8102e', '#1d4e9e', '#1e7a46', '#b5651d'];
-const FACES = ['🕵️‍♀️', '🧑‍🎄', '🧝', '⛄'];
+const FACES = ['⛄', '🕵️‍♀️', '🧑‍🎄', '👩🏻'];
 
 /** Four statements, exactly one true: who did it? */
 export default function Suspects({ day, content, solved }: GameProps) {
