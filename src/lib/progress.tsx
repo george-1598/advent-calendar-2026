@@ -19,7 +19,16 @@ export interface DayProgress {
   badge_letter: string | null;
   /** Multi-step chains: the step the player is on (0-based). */
   chain_step?: number;
+  /** The player gave up: the day counts as done, with a grey badge. */
+  gave_up?: boolean;
+  /** How many hints the day has (they unlock every 3 wrong tries). */
+  hint_count?: number;
+  /** After giving up: the answer (word games only). */
+  answer?: string | null;
 }
+
+/** Giving up becomes possible after this many wrong tries. */
+export const GIVE_UP_AFTER = 10;
 
 export interface SubmitResult extends Omit<DayProgress, 'day'> {
   correct: boolean;
@@ -50,6 +59,7 @@ interface ProgressState {
   byDay: Record<number, DayProgress>;
   solvedCount: number;
   submit: (day: number, answer: string) => Promise<SubmitResult>;
+  giveUp: (day: number) => Promise<void>;
   /** Open days that already have a quest (null until loaded). Others are "work in progress". */
   ready: Set<number> | null;
   notes: Note[];
@@ -114,10 +124,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     };
   }, [userId, calendarId]);
 
-  const submit = useCallback(async (day: number, answer: string) => {
-    const { data, error } = await supabase.rpc('submit_answer', { p_day: day, p_answer: answer, p_calendar: calendarId });
-    if (error) throw new Error(error.message);
-    const result = data as SubmitResult;
+  const store = (day: number, result: SubmitResult) =>
     setByDay((prev) => ({
       ...prev,
       [day]: {
@@ -128,15 +135,30 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         hint: result.hint,
         badge_letter: result.badge_letter,
         chain_step: result.chain_step,
+        gave_up: result.gave_up,
+        hint_count: result.hint_count,
+        answer: result.answer,
       },
     }));
+
+  const submit = useCallback(async (day: number, answer: string) => {
+    const { data, error } = await supabase.rpc('submit_answer', { p_day: day, p_answer: answer, p_calendar: calendarId });
+    if (error) throw new Error(error.message);
+    const result = data as SubmitResult;
+    store(day, result);
     return result;
+  }, [calendarId]);
+
+  const giveUp = useCallback(async (day: number) => {
+    const { data, error } = await supabase.rpc('give_up', { p_day: day, p_calendar: calendarId });
+    if (error) throw new Error(error.message);
+    store(day, data as SubmitResult);
   }, [calendarId]);
 
   const solvedCount = Object.values(byDay).filter((p) => p.solved_at).length;
 
   return (
-    <ProgressContext.Provider value={{ byDay, solvedCount, submit, ready, notes, refreshNotes }}>{children}</ProgressContext.Provider>
+    <ProgressContext.Provider value={{ byDay, solvedCount, submit, giveUp, ready, notes, refreshNotes }}>{children}</ProgressContext.Provider>
   );
 }
 

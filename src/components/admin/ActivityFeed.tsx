@@ -9,6 +9,7 @@ export interface ActivityEvent {
   name: string;
   day?: number;
   attempts?: number;
+  gave_up?: boolean;
   emoji?: string | null;
   body?: string | null;
   at: string;
@@ -74,7 +75,7 @@ export default function ActivityFeed({ calendarId, activity, onChanged }: { cale
 }
 
 function icon(e: ActivityEvent): string {
-  if (e.type === 'solved') return '⭐';
+  if (e.type === 'solved') return e.gave_up ? '🏳️' : '⭐';
   if (e.type === 'joined') return '👋';
   if (e.type === 'hint') return '💬';
   return e.emoji || '💌';
@@ -83,6 +84,7 @@ function icon(e: ActivityEvent): string {
 function describe(e: ActivityEvent): string {
   switch (e.type) {
     case 'solved':
+      if (e.gave_up) return `${e.name} gave up on day ${e.day} and saw the answer`;
       return `${e.name} solved day ${e.day}${e.attempts ? ` after ${e.attempts} wrong ${e.attempts === 1 ? 'try' : 'tries'}` : ' on the first try'}`;
     case 'joined':
       return `${e.name} joined your calendar`;

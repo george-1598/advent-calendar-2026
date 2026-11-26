@@ -103,6 +103,7 @@ export default function QuestsTab({
   return (
     <EditorCalendar.Provider value={calendarId}>
     <div className="admin-stack">
+      <FinaleEditor calendarId={calendarId} />
       <p className="admin-muted">
         {ready} of 25 days have a default quest. Each day can also be customised per player. Answers are checked
         ignoring capitals, accents, spaces and punctuation.
@@ -415,11 +416,21 @@ function QuestEditor({
         <span>Gift / surprise (shown when solved)</span>
         <textarea rows={2} value={form.reward} onChange={(e) => set('reward', e.target.value)} placeholder={ph(def.reward, 'Look under your pillow 🎁')} />
       </label>
+      <label>
+        <span>Hints (one per line, up to 3)</span>
+        <textarea
+          rows={3}
+          value={form.hint}
+          onChange={(e) => set('hint', e.target.value)}
+          placeholder={ph(def.hint, 'Hint 1 (after 3 wrong tries)\nHint 2 (after 6)\nHint 3 (after 9)')}
+        />
+        {form.hint.split('\n').filter((l) => l.trim()).length > 3 && <small className="admin-warn-text">Only the first 3 lines are used.</small>}
+        <small>After 10 wrong tries players can also give up: they see the answer and the gift, with a grey badge.</small>
+      </label>
+      <p className="admin-tip">
+        💡 Write <code>{'{name}'}</code> anywhere (title, question, gift, hints) and each player sees their own first name.
+      </p>
       <div className="admin-row">
-        <label>
-          <span>Hint (after 3 wrong tries)</span>
-          <input value={form.hint} onChange={(e) => set('hint', e.target.value)} placeholder={ph(def.hint, '')} />
-        </label>
         <label className="admin-narrow">
           <span>Badge letter</span>
           <input value={form.letter} maxLength={2} onChange={(e) => set('letter', e.target.value.toUpperCase())} placeholder={isDefault ? '' : def.letter} />
@@ -463,5 +474,51 @@ function QuestEditor({
           ))}
       </div>
     </form>
+  );
+}
+
+/** The calendar's finale: shown once a player has finished every filled-in day (from Dec 24). */
+function FinaleEditor({ calendarId }: { calendarId: string }) {
+  const [text, setText] = useState<string | null>(null);
+  const [saved, setSaved] = useState('');
+  const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    supabase.rpc('editor_finale', { p_calendar: calendarId }).then(({ data }) => {
+      setText((data as string | null) ?? '');
+      setSaved((data as string | null) ?? '');
+    });
+  }, [calendarId]);
+  if (text === null) return null;
+  const save = async () => {
+    const { error } = await supabase.rpc('set_finale', { p_calendar: calendarId, p_message: text });
+    if (error) return setMessage({ ok: false, text: error.message });
+    setSaved(text);
+    setMessage({ ok: true, text: 'Finale saved ✓' });
+  };
+  return (
+    <div className="admin-card finale-editor">
+      <button type="button" className="finale-editor-head" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        <span>🎉</span>
+        <span>
+          <strong>Finale message</strong>
+          <small>{saved ? `“${saved.slice(0, 60)}${saved.length > 60 ? '…' : ''}”` : 'Not written yet'}</small>
+        </span>
+        <span className="finale-editor-chev">{open ? '▴' : '▾'}</span>
+      </button>
+      {open && (
+        <div className="finale-editor-body">
+          <p className="admin-muted">
+            When a player has finished every day you filled in (from December 24), their badge letters come together into a word
+            and this message appears. Use the badge letters to spell something, e.g. J-O-Y or a name.
+          </p>
+          <textarea rows={4} maxLength={1000} value={text} onChange={(e) => setText(e.target.value)} placeholder="Merry Christmas {name}! Your last surprise is behind the sofa 🎄" />
+          {message && <p className={message.ok ? 'form-info' : 'form-error'}>{message.text}</p>}
+          <button type="button" className="admin-save" onClick={save} disabled={text === saved}>
+            Save finale
+          </button>
+        </div>
+      )}
+    </div>
   );
 }

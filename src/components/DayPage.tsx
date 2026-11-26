@@ -9,6 +9,7 @@ import { TOTAL_DAYS, YEAR, formatCountdown, isUnlocked, unlockAt } from '../lib/
 import { dayColor, goHome, openAdmin, openDayPage, openMine } from '../lib/route';
 import { StarIcon, LockIcon } from './icons';
 import { DayHints, ThanksBox } from './DayNotes';
+import DayHelp from './DayHelp';
 
 interface Quest {
   day: number;
@@ -74,7 +75,7 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
         {canOpen && quest && <h1 className="day-hero-title">{quest.title}</h1>}
         {solved && (
           <span className="day-hero-solved">
-            <StarIcon className="day-hero-star" /> Solved
+            <StarIcon className="day-hero-star" /> {progress?.gave_up ? 'Revealed' : 'Solved'}
           </span>
         )}
       </header>
@@ -120,7 +121,12 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
             {!solved && <DayHints day={day} />}
             <Game key={`${calendarId}-${day}-${quest.kind}`} kind={quest.kind} day={day} content={quest.content ?? {}} solved={solved} code={code} />
             {solved ? (
-              <div className="day-reward">
+              <div className={progress?.gave_up ? 'day-reward is-revealed' : 'day-reward'}>
+                {progress?.gave_up && progress.answer && (
+                  <p className="day-revealed">
+                    The answer was <strong>{progress.answer}</strong>
+                  </p>
+                )}
                 <div className="day-reward-badge">
                   {progress?.badge_letter ? (
                     <span className="day-reward-letter">{progress.badge_letter}</span>
@@ -128,16 +134,12 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
                     <StarIcon className="day-reward-star" />
                   )}
                 </div>
-                <span className="day-reward-kicker">Solved! Your surprise</span>
+                <span className="day-reward-kicker">{progress?.gave_up ? 'Your surprise' : 'Solved! Your surprise'}</span>
                 <p className="day-reward-text">{progress?.reward}</p>
                 <ThanksBox day={day} />
               </div>
             ) : (
-              progress?.hint && (
-                <p className="day-hint">
-                  <strong>Hint:</strong> {progress.hint}
-                </p>
-              )
+              <DayHelp day={day} progress={progress} />
             )}
           </div>
         )}
