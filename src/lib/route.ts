@@ -16,6 +16,7 @@ export type Route = (
   | { name: 'admin'; tab: AdminTab }
   | { name: 'mine'; tab: MineTab }
   | { name: 'join'; token: string }
+  | { name: 'profile' }
 ) & { calendar?: string };
 
 const ROUTE_EVENT = 'advent-route';
@@ -34,6 +35,7 @@ export function parseRoute(hash = window.location.hash): Route {
   if (a) return { name: 'admin', tab: (a[1] as AdminTab | undefined) ?? 'players' };
   const mine = hash.match(/^#\/mine(?:\/(friends|activity|quests|players))?$/);
   if (mine) return { name: 'mine', tab: (mine[1] as MineTab | undefined) ?? 'friends' };
+  if (hash === '#/profile') return { name: 'profile' };
   const join = hash.match(/^#\/join\/([a-f0-9]{16,64})$/);
   if (join) return { name: 'join', token: join[1] };
   return { name: 'home' };
@@ -134,4 +136,11 @@ export function stripCalendarFromUrl() {
 /** The link a friend opens to join a calendar. */
 export function inviteUrl(token: string): string {
   return `${window.location.origin}${import.meta.env.BASE_URL}#/join/${token}`;
+}
+
+/** Open the profile page (display name & password). */
+export function openProfile() {
+  history.pushState({}, '', '#/profile');
+  window.dispatchEvent(new Event(ROUTE_EVENT));
+  window.scrollTo(0, 0);
 }

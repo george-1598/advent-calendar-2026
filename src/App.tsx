@@ -1,6 +1,8 @@
 import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import DayPage from './components/DayPage';
-import { goHome, openAdmin, openMine, savedScroll, stripCalendarFromUrl, useRoute } from './lib/route';
+import { goHome, openAdmin, openMine, openProfile, savedScroll, stripCalendarFromUrl, useRoute } from './lib/route';
+import ProfilePage from './components/ProfilePage';
+import Tour from './components/Tour';
 import { useCalendars } from './lib/calendars';
 import { reloadIfStale } from './lib/staleReload';
 // Admin pages (and their map/QR tools) load only for admins who open them.
@@ -102,6 +104,8 @@ export default function App() {
               <Suspense fallback={<p className="admin-muted">Loading…</p>}>
                 <MyCalendarPage tab={route.tab} />
               </Suspense>
+            ) : route.name === 'profile' ? (
+              <ProfilePage />
             ) : route.name === 'day' ? (
               <DayPage day={route.day} code={route.code} />
             ) : (
@@ -119,10 +123,11 @@ export default function App() {
         <p className="footer-big">Christmas 2026</p>
         {session && (
           <div className="account">
-            <span className="account-name">
+            <button className="account-name" onClick={openProfile} aria-current={route.name === 'profile' ? 'page' : undefined}>
               Signed in as <strong>{profile?.display_name ?? '…'}</strong>
               {profile?.is_admin && <span className="admin-tag">Admin</span>}
-            </span>
+              <span className="account-edit">⚙️ Profile</span>
+            </button>
             <button className="btn-mine" onClick={() => openMine()} aria-current={route.name === 'mine' ? 'page' : undefined}>
               {isCreator(profile)
                 ? hasOwnCalendar
@@ -148,6 +153,7 @@ export default function App() {
 
       {pickerOpen && <ThemePicker onClose={closePicker} />}
       <UnlockCelebration />
+      {session && route.name !== 'join' && <Tour />}
     </>
   );
 }

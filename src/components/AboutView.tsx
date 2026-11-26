@@ -1,37 +1,99 @@
-const STEPS = [
+import { useState } from 'react';
+import { openTour } from './Tour';
+
+interface Section {
+  icon: string;
+  title: string;
+  body: string[];
+}
+
+const SECTIONS: Section[] = [
   {
-    title: 'A new door every day',
-    text: 'From December 1st to 25th, a new door opens at midnight (Bucharest time).',
+    icon: '🚪',
+    title: 'The doors',
+    body: [
+      'From December 1 to 25, a new door opens every midnight (Bucharest time). Locked doors show a countdown.',
+      'The days are shuffled every morning, so part of the fun is finding today’s door. Doors stay open: you can catch up on missed days anytime.',
+      'A 🛠️ on an open door means it’s still being prepared. Check back later.',
+    ],
   },
   {
-    title: 'Solve the quest',
-    text: 'Behind each door is a riddle, puzzle or mini-game. Some take a minute, some take a little detective work.',
+    icon: '🧩',
+    title: 'Solving',
+    body: [
+      'Each door holds a riddle, puzzle or mini-game: wordles, maps, photo hunts, codes, mysteries and more.',
+      'Answers ignore capitals, accents and spaces. After 3, 6 and 9 wrong tries, hints unlock.',
+      'Really stuck? After 10 wrong tries you can give up: you’ll see the answer and your gift, with a grey badge.',
+    ],
   },
   {
-    title: 'Unlock the surprise',
-    text: 'The right answer reveals where to find that day’s gift, and earns you a badge.',
+    icon: '🎁',
+    title: 'Your gift',
+    body: [
+      'Solving a day tells you where to find that day’s real surprise.',
+      'You can send the creator a thank-you, and add a photo of your gift. On December 25 your photos become “Our December”.',
+    ],
   },
   {
-    title: 'Collect them all',
-    text: 'Every badge hides a clue. You’ll need all of them for the final quest.',
+    icon: '🔤',
+    title: 'Badges & the secret phrase',
+    body: [
+      'Every solved day gives you one badge character, in a scrambled order. Your collection is in “Badges”.',
+      'With all 25 characters (on Christmas Day at the earliest), unscramble them to reveal a secret phrase and a final message. On December 25 there’s also your Christmas Wrapped.',
+    ],
+  },
+  {
+    icon: '🎨',
+    title: 'Themes',
+    body: [
+      'Tap “Theme” to change how the calendar looks. Only the first theme is open at the start.',
+      'Each theme hides a clue to a special day; find and open that day inside the theme to unlock the next one.',
+    ],
+  },
+  {
+    icon: '👭',
+    title: 'Friends’ calendars',
+    body: [
+      'Friends can make you a calendar too. Open their invite link and it appears at the top of your calendar, next to this one.',
+      'Want to make one yourself? Ask from the button at the bottom of the page. Once approved, you can make a calendar for up to 3 friends.',
+    ],
+  },
+  {
+    icon: '📲',
+    title: 'On your phone',
+    body: [
+      'Add the calendar to your home screen to open it like an app: in Safari, tap Share → Add to Home Screen; in Chrome, use the Install button.',
+      'Tap your name at the bottom of the page to change your display name or password.',
+    ],
   },
 ];
 
 export default function AboutView() {
+  const [open, setOpen] = useState<number | null>(0);
   return (
     <section className="page">
-      <h1 className="page-title">How it works</h1>
-      <ol className="steps">
-        {STEPS.map((step, i) => (
-          <li key={step.title} className="step">
-            <span className="step-num">{i + 1}</span>
-            <div>
-              <h2>{step.title}</h2>
-              <p>{step.text}</p>
-            </div>
-          </li>
+      <h1 className="page-title">How to play</h1>
+      <div className="howto">
+        {SECTIONS.map((s, i) => (
+          <article key={s.title} className={open === i ? 'howto-item is-open' : 'howto-item'}>
+            <button className="howto-head" onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i}>
+              <span className="howto-icon">{s.icon}</span>
+              <span className="howto-title">{s.title}</span>
+              <span className="howto-chev">{open === i ? '−' : '+'}</span>
+            </button>
+            {open === i && (
+              <div className="howto-body">
+                {s.body.map((p, k) => (
+                  <p key={k}>{p}</p>
+                ))}
+              </div>
+            )}
+          </article>
         ))}
-      </ol>
+      </div>
+      <button className="howto-tour" onClick={openTour}>
+        ▶︎ Replay the intro tour
+      </button>
     </section>
   );
 }
