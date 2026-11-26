@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { PendingNote } from '../calendar/Pending';
 import { useExplored } from '../../lib/explored';
 import { playChime, playLightOff, playLightOn, soundEnabled, startWinterAmbience } from '../../lib/sound';
 import type { CalendarController } from '../calendar/controller';
@@ -233,6 +234,7 @@ export default function VillageCalendar({ ctrl }: { ctrl: CalendarController }) 
             {peek.day && peekState ? (
               <>
                 <p className="v-peek-title">December {peek.day}</p>
+                <PendingNote state={peekState} />
                 {peekState.canOpen ? (
                   <button
                     className="sc-btn sc-btn--primary"

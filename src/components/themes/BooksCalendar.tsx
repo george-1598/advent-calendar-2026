@@ -1,4 +1,5 @@
 import { useState, type CSSProperties } from 'react';
+import { PendingMark } from '../calendar/Pending';
 import { playBookSlide } from '../../lib/sound';
 import type { CalendarController } from '../calendar/controller';
 import SoundToggle from '../SoundToggle';
@@ -85,6 +86,7 @@ export default function BooksCalendar({ ctrl }: { ctrl: CalendarController }) {
         )}
         {book.day && <span className="book-num">{book.day}</span>}
         {solved && <StarIcon className="book-ribbon" />}
+        {book.day && <PendingMark state={ctrl.stateOf(book.day)} className="pending-mark--book" />}
         {book.id === BOOKMARK_BOOK && <span className="book-bookmark">{clue('books')}</span>}
       </button>
     );

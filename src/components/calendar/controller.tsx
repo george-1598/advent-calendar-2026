@@ -12,6 +12,8 @@ export interface DayState {
   solved: boolean;
   /** Unlocked, or the viewer is an admin previewing. */
   canOpen: boolean;
+  /** Open, but its creator hasn't filled it in yet ("work in progress"). */
+  pending: boolean;
 }
 
 /**
@@ -20,7 +22,7 @@ export interface DayState {
  */
 export function useCalendarController() {
   const now = useNow();
-  const { byDay } = useProgress();
+  const { byDay, ready } = useProgress();
   // Admins (main calendar) and creators (their own) can preview locked days.
   const { canEdit: isAdmin } = useCalendars();
 
@@ -41,6 +43,7 @@ export function useCalendarController() {
       today: isToday(day, now),
       solved: Boolean(byDay[day]?.solved_at),
       canOpen: unlocked || isAdmin,
+      pending: (unlocked || isAdmin) && ready !== null && !ready.has(day) && !byDay[day]?.solved_at,
     };
   };
 
@@ -80,4 +83,4 @@ export function useCalendarController() {
 export type CalendarController = ReturnType<typeof useCalendarController>;
 
 export const ariaStatus = (s: DayState) =>
-  s.solved ? ', solved' : !s.unlocked ? ', locked' : s.today ? ', today' : '';
+  s.solved ? ', solved' : !s.unlocked ? ', locked' : s.pending ? ', still being prepared' : s.today ? ', today' : '';

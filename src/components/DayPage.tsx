@@ -6,7 +6,7 @@ import { useProgress } from '../lib/progress';
 import { calendarLabel, useCalendars } from '../lib/calendars';
 import { useNow } from '../lib/useNow';
 import { TOTAL_DAYS, YEAR, formatCountdown, isUnlocked, unlockAt } from '../lib/time';
-import { dayColor, goHome, openDayPage } from '../lib/route';
+import { dayColor, goHome, openAdmin, openDayPage, openMine } from '../lib/route';
 import { StarIcon, LockIcon } from './icons';
 
 interface Quest {
@@ -90,9 +90,27 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
         {canOpen && quest === undefined && <p className="day-loading">Opening the door…</p>}
 
         {canOpen && quest === null && (
-          <div className="day-card">
-            <h2>The elves are still wrapping this one</h2>
-            <p>Today’s quest isn’t ready yet. Check back soon!</p>
+          <div className="day-card day-pending">
+            <span className="day-pending-icon">{calendar.is_main ? '🛠️' : '🎁'}</span>
+            {canEdit ? (
+              <>
+                <h2>You haven’t filled in this day yet</h2>
+                <p>Players see “work in progress” here until you add a quest.</p>
+                <button className="game-primary" onClick={() => (calendar.is_main ? openAdmin('quests') : openMine('quests'))}>
+                  Fill in December {day}
+                </button>
+              </>
+            ) : calendar.is_main ? (
+              <>
+                <h2>Work in progress</h2>
+                <p>The elves are still preparing December {day}. Check back soon!</p>
+              </>
+            ) : (
+              <>
+                <h2>{calendar.owner_name ?? 'Your friend'} is still preparing this one</h2>
+                <p>December {day} isn’t ready yet. Check back soon!</p>
+              </>
+            )}
           </div>
         )}
 

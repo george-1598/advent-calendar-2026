@@ -1,4 +1,5 @@
 import type { MouseEvent } from 'react';
+import { PendingMark } from '../calendar/Pending';
 import type { View } from '../../App';
 import { LAYOUT, dayColorStyle } from '../../data/layout';
 import { TOTAL_DAYS } from '../../lib/time';
@@ -102,6 +103,7 @@ export default function ClassicCalendar({ ctrl, onNavigate }: Props) {
                   <span className="day-number">{item.day}</span>
                   {!s.unlocked && <LockIcon className="day-lock" />}
                   {s.solved && <StarIcon className="day-star" />}
+                  <PendingMark state={s} className="pending-mark--corner" />
                   {s.today && !s.solved && <span className="today-tag">Today</span>}
                 </button>
               );

@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
+import { PendingNote } from '../calendar/Pending';
 import { between, rng } from '../../lib/random';
 import { playChime, playTink } from '../../lib/sound';
 import { TOTAL_DAYS, formatCountdown, isUnlocked, unlockAt } from '../../lib/time';
@@ -356,6 +357,7 @@ export default function OrnamentsCalendar({ ctrl }: { ctrl: CalendarController }
               <OrnamentArt design={DESIGNS[selected.day - 1]} label={selected.day} />
             </div>
             <div className="orn-focus-actions" onClick={(e) => e.stopPropagation()}>
+              <PendingNote state={selState} />
               {selState.canOpen ? (
                 <button
                   className="orn-btn orn-btn--primary"

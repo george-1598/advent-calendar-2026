@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { PendingMark } from '../../calendar/Pending';
 import type { DayState } from '../../calendar/controller';
 import { ariaStatus } from '../../calendar/controller';
 import { LockIcon, StarIcon } from '../../icons';
@@ -74,6 +75,7 @@ export default function Gift({ design, state, unwrapping, shaking, grand, onClic
             <span className="gift-tag-num">{day}</span>
             {!state.unlocked && <LockIcon className="gift-tag-lock" />}
           </span>
+          <PendingMark state={state} className="pending-mark--corner" />
 
           {state.today && !state.solved && (
             <>

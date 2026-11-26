@@ -1135,3 +1135,13 @@ h1, h2, p { margin: 0; }
 .admin-tabs--3 button { padding: 11px 4px; letter-spacing: 0.04em; }
 .mine-create, .mine-friends, .mine-share, .mine-actions, .mine-danger { padding: 16px; }
 .mine-page-tabs { margin-bottom: 14px; }
+
+/* Work in progress (open days without a quest yet) */
+.pending-mark { position: absolute; z-index: 3; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: rgba(255, 253, 248, 0.92); box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18); font-size: 13px; line-height: 1; pointer-events: none; }
+.pending-mark--corner { top: 6px; left: 6px; }
+.pending-mark--book { bottom: 64px; left: 50%; translate: -50% 0; width: 20px; height: 20px; font-size: 11px; }
+.pending-note { margin: 0 0 8px; padding: 6px 12px; border-radius: 999px; background: rgba(255, 253, 248, 0.92); color: #6b5a3e; font-size: 13px; font-weight: 600; text-align: center; }
+.day-pending { text-align: center; display: grid; justify-items: center; gap: 6px; }
+.day-pending-icon { font-size: 40px; }
+.day-pending h2, .day-pending p { margin: 0; }
+.pending-mark--mail { top: 8px; left: 46px; }

@@ -183,7 +183,13 @@ export default function BookReader({ book, from, state, now, onQuest, onClose, k
     finalPage = (
       <>
         <span className="bk-kicker">December {book.day}</span>
-        <p>{state.solved ? 'You already solved this chapter.' : 'Your quest is written on the next page…'}</p>
+        <p>
+          {state.solved
+            ? 'You already solved this chapter.'
+            : state.pending
+              ? 'This chapter is still being written… check back soon.'
+              : 'Your quest is written on the next page…'}
+        </p>
         <button
           className="bk-quest-btn"
           onClick={(e) => {

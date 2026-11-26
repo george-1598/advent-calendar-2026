@@ -38,6 +38,8 @@ interface ProgressState {
   byDay: Record<number, DayProgress>;
   solvedCount: number;
   submit: (day: number, answer: string) => Promise<SubmitResult>;
+  /** Open days that already have a quest (null until loaded). Others are "work in progress". */
+  ready: Set<number> | null;
 }
 
 const ProgressContext = createContext<ProgressState | null>(null);
@@ -47,6 +49,30 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const userId = session?.user.id;
   const { currentId: calendarId } = useCalendars();
   const [byDay, setByDay] = useState<Record<number, DayProgress>>({});
+  const [ready, setReady] = useState<Set<number> | null>(null);
+
+  // Which open days are filled in: on load, when coming back to the app, and every few minutes,
+  // so a day the creator adds later shows up without a reload.
+  useEffect(() => {
+    setReady(null);
+    // Local development only (?nologin): load without a session so the calendar can be previewed.
+    const devPreview = import.meta.env.DEV && new URLSearchParams(window.location.search).has('nologin');
+    if (!userId && !devPreview) return;
+    let cancelled = false;
+    const load = () =>
+      supabase.rpc('ready_days', { p_calendar: calendarId }).then(({ data, error }) => {
+        if (!cancelled && !error && Array.isArray(data)) setReady(new Set(data as number[]));
+      });
+    load();
+    const onVisible = () => document.visibilityState === 'visible' && load();
+    document.addEventListener('visibilitychange', onVisible);
+    const id = window.setInterval(load, 3 * 60 * 1000);
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', onVisible);
+      window.clearInterval(id);
+    };
+  }, [userId, calendarId]);
 
   useEffect(() => {
     setByDay({});
@@ -84,7 +110,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const solvedCount = Object.values(byDay).filter((p) => p.solved_at).length;
 
   return (
-    <ProgressContext.Provider value={{ byDay, solvedCount, submit }}>{children}</ProgressContext.Provider>
+    <ProgressContext.Provider value={{ byDay, solvedCount, submit, ready }}>{children}</ProgressContext.Provider>
   );
 }
 

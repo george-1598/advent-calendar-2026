@@ -1,4 +1,5 @@
 import { useRef, useState, type PointerEvent } from 'react';
+import { PendingMark } from '../calendar/Pending';
 import { useAuth } from '../../lib/auth';
 import { playPaperSlide } from '../../lib/sound';
 import type { CalendarController } from '../calendar/controller';
@@ -123,6 +124,7 @@ export default function MailroomCalendar({ ctrl }: { ctrl: CalendarController })
               }}
             >
               <MailFace mail={m} to={to} sealed={!!s?.today && !s.solved} showNumber={sorted} />
+              {sorted && s && <PendingMark state={s} className="pending-mark--mail" />}
             </button>
           );
         })}

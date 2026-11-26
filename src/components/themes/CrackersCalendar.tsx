@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PendingNote } from '../calendar/Pending';
 import { useExplored } from '../../lib/explored';
 import { playChime, playSnap } from '../../lib/sound';
 import { formatCountdown, unlockAt } from '../../lib/time';
@@ -109,6 +110,7 @@ export default function CrackersCalendar({ ctrl }: { ctrl: CalendarController })
               </button>
             )}
             <span className="cr-big">{reveal}</span>
+            <PendingNote state={rs} />
             {rs.canOpen ? (
               <button
                 className="sc-btn sc-btn--primary"

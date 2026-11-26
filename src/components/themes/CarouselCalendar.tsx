@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react';
+import { PendingMark } from '../calendar/Pending';
 import { isUnlocked, TOTAL_DAYS } from '../../lib/time';
 import { ariaStatus, type CalendarController } from '../calendar/controller';
 import { LockIcon, StarIcon } from '../icons';
@@ -240,6 +241,7 @@ function Drawer({ state, color, pulled, shaking, onClick }: DrawerProps) {
         <span className="drawer-frame" />
         <span className="drawer-num">{state.day}</span>
         {state.solved && <StarIcon className="drawer-star" />}
+        <PendingMark state={state} className="pending-mark--corner" />
         {!state.unlocked && <LockIcon className="drawer-lock" />}
       </span>
     </button>

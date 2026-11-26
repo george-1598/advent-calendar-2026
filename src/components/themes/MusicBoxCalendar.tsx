@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from 'react';
+import { PendingMark } from '../calendar/Pending';
 import { useExplored } from '../../lib/explored';
 import { rng, shuffle } from '../../lib/random';
 import { playMusicNote, playRatchet } from '../../lib/sound';
@@ -212,6 +213,7 @@ export default function MusicBoxCalendar({ ctrl }: { ctrl: CalendarController })
                   <span className="mb-drawer-front">
                     <span className="mb-knob" />
                     {seen.has(day) && <span className="mb-plate">{day}</span>}
+                    {seen.has(day) && <PendingMark state={ctrl.stateOf(day)} className="pending-mark--corner" />}
                   </span>
                   <span className="mb-card">{day}</span>
                 </button>

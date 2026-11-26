@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react';
+import { PendingMark, PendingNote } from '../calendar/Pending';
 import { useExplored } from '../../lib/explored';
 import { playChime, playSweep } from '../../lib/sound';
 import { rng, shuffle } from '../../lib/random';
@@ -82,6 +83,7 @@ export default function ScratchCalendar({ ctrl }: { ctrl: CalendarController }) 
                 <span className="sc-tile-foil is-peeling" style={{ animationDelay: `${i * 60}ms` }} />
               )}
               {solved && <StarIcon className="sc-tile-star" />}
+              {isRevealed && <PendingMark state={ctrl.stateOf(day)} className="pending-mark--corner" />}
             </button>
           );
         })}
@@ -111,9 +113,12 @@ export default function ScratchCalendar({ ctrl }: { ctrl: CalendarController }) 
               {!justRevealed ? (
                 <p className="sc-hint">Scratch with your finger</p>
               ) : activeState.canOpen ? (
-                <button className="sc-btn sc-btn--primary" onClick={() => openDay(active)}>
-                  Open December {active}
-                </button>
+                <>
+                  <PendingNote state={activeState} />
+                  <button className="sc-btn sc-btn--primary" onClick={() => openDay(active)}>
+                    Open December {active}
+                  </button>
+                </>
               ) : (
                 <p className="sc-hint">Day {active} opens in {formatCountdown(unlockAt(active) - ctrl.now)}</p>
               )}

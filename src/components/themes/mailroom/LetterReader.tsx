@@ -69,7 +69,9 @@ export default function LetterReader({ mail, to, state, now, onQuest, onClose }:
         <p className="lr-note">
           {`My dearest ${to},\n\nThis is advent letter number ${word}.\n`}
           {state.canOpen
-            ? 'Tucked inside is today’s little adventure…'
+            ? state.pending
+              ? 'This letter is still being written… check back soon.'
+              : 'Tucked inside is today’s little adventure…'
             : `It’s postmarked for the ${mail.day}th — come back in ${formatCountdown(unlockAt(mail.day) - now)}.`}
           {'\n\nWith all my love ♥'}
         </p>
