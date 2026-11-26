@@ -14,13 +14,13 @@ export const CLAIMS: { id: ClaimType; label: string }[] = [
 ];
 
 export const EXAMPLE_SUSPECTS: Suspect[] = [
-  { name: 'Alice', says: { type: 'did', target: 1 } },
-  { name: 'Bob', says: { type: 'did', target: 3 } },
-  { name: 'Carol', says: { type: 'didnt', target: 2 } },
-  { name: 'David', says: { type: 'lying', target: 1 } },
+  { name: 'George', says: { type: 'did', target: 1 } },
+  { name: 'Gabii', says: { type: 'did', target: 3 } },
+  { name: 'Carla', says: { type: 'didnt', target: 2 } },
+  { name: 'Ade', says: { type: 'lying', target: 1 } },
 ];
 
-/** The sentence a suspect says, e.g. "Bob did it." or "I didn't do it." */
+/** The sentence a suspect says, e.g. "Gabii did it." or "I didn't do it." */
 export function statementText(suspects: Suspect[], i: number): string {
   const { type, target } = suspects[i].says;
   const self = target === i;
