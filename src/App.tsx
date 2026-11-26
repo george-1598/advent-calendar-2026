@@ -2,9 +2,10 @@ import { Suspense, lazy, useCallback, useEffect, useState } from 'react';
 import DayPage from './components/DayPage';
 import { goHome, openAdmin, openMine, savedScroll, stripCalendarFromUrl, useRoute } from './lib/route';
 import { useCalendars } from './lib/calendars';
+import { reloadIfStale } from './lib/staleReload';
 // Admin pages (and their map/QR tools) load only for admins who open them.
-const AdminPage = lazy(() => import('./components/admin/AdminPage'));
-const MyCalendarPage = lazy(() => import('./components/admin/MyCalendarPage'));
+const AdminPage = lazy(() => reloadIfStale(import('./components/admin/AdminPage')));
+const MyCalendarPage = lazy(() => reloadIfStale(import('./components/admin/MyCalendarPage')));
 import ThemePicker from './components/ThemePicker';
 import UnlockCelebration from './components/UnlockCelebration';
 import Calendar from './components/Calendar';
@@ -31,6 +32,7 @@ export default function App() {
   const session = auth.session ?? (devPreview ? ({} as NonNullable<typeof auth.session>) : null);
   const [view, setView] = useState<View>('calendar');
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
   const route = useRoute();
   const { calendars, currentId, select } = useCalendars();
   const hasOwnCalendar = calendars.some((c) => c.is_owner);
@@ -130,8 +132,15 @@ export default function App() {
                   ? '⏳ Calendar request sent'
                   : '✋ Ask to make your own calendar'}
             </button>
-            <button className="btn-logout" onClick={signOut}>
-              Log out
+            <button
+              className="btn-logout"
+              disabled={loggingOut}
+              onClick={() => {
+                setLoggingOut(true);
+                void signOut();
+              }}
+            >
+              {loggingOut ? 'Logging out…' : 'Log out'}
             </button>
           </div>
         )}

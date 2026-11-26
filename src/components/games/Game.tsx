@@ -1,8 +1,9 @@
 import { Suspense, lazy, type ComponentType } from 'react';
+import { reloadIfStale } from '../../lib/staleReload';
 import type { GameKind, GameProps } from './types';
 
 // The map (Leaflet) is big, so it loads only when a map day is opened.
-const MapPin = lazy(() => import('./MapPin'));
+const MapPin = lazy(() => reloadIfStale(import('./MapPin')));
 import Riddle from './Riddle';
 import Wordle from './Wordle';
 import Song from './Song';
@@ -21,7 +22,7 @@ import Truths from './Truths';
 import Suspects from './Suspects';
 import Einstein from './Einstein';
 // Chain renders other games, so it's loaded lazily to avoid a circular import at startup.
-const Chain = lazy(() => import('./Chain'));
+const Chain = lazy(() => reloadIfStale(import('./Chain')));
 
 const GAMES: Record<GameKind, ComponentType<GameProps>> = {
   riddle: Riddle,

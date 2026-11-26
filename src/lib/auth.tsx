@@ -75,4 +75,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export const useAuth = () => useContext(AuthContext);
 
-export const signOut = () => supabase.auth.signOut();
+/**
+ * Sign out reliably. Supabase's own sign-out can fail quietly (a bad connection)
+ * or hang (its session lock on mobile), leaving you signed in, so: sign out on
+ * this device only, give up waiting after 3 s, clear the saved session ourselves,
+ * and reload to the sign-in page.
+ */
+export async function signOut() {
+  try {
+    await Promise.race([supabase.auth.signOut({ scope: 'local' }), new Promise((resolve) => setTimeout(resolve, 3000))]);
+  } catch {
+    // carry on: the session is cleared below anyway
+  }
+  try {
+    Object.keys(localStorage)
+      .filter((k) => k.startsWith('sb-') && k.includes('auth-token'))
+      .forEach((k) => localStorage.removeItem(k));
+  } catch {
+    // ignore
+  }
+  window.location.replace(`${window.location.pathname}${window.location.search}#/`);
+  window.location.reload();
+}
