@@ -12,7 +12,7 @@ import BadgesView from './components/BadgesView';
 import AboutView from './components/AboutView';
 import LoginView from './components/LoginView';
 import JoinPage from './components/JoinPage';
-import { signOut, useAuth } from './lib/auth';
+import { isCreator, signOut, useAuth } from './lib/auth';
 
 export type View = 'calendar' | 'badges' | 'about';
 
@@ -122,7 +122,13 @@ export default function App() {
               {profile?.is_admin && <span className="admin-tag">Admin</span>}
             </span>
             <button className="btn-mine" onClick={() => openMine()} aria-current={route.name === 'mine' ? 'page' : undefined}>
-              {hasOwnCalendar ? '🎁 My calendar for friends' : '🎁 Make a calendar for friends'}
+              {isCreator(profile)
+                ? hasOwnCalendar
+                  ? '🎁 My calendar for friends'
+                  : '🎁 Make a calendar for friends'
+                : profile?.creator_status === 'pending'
+                  ? '⏳ Calendar request sent'
+                  : '✋ Ask to make your own calendar'}
             </button>
             <button className="btn-logout" onClick={signOut}>
               Log out

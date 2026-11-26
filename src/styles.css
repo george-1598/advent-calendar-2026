@@ -1398,3 +1398,20 @@ span.feed-photo { height: 140px; }
 .health-url { overflow-wrap: anywhere; }
 .health-detail pre { margin: 0; padding: 10px; border-radius: 8px; background: #2b2420; color: #f3e6d2; font-size: 11px; line-height: 1.45; overflow-x: auto; white-space: pre-wrap; max-height: 260px; }
 .game-crash { margin: 0; padding: 14px; border-radius: 12px; background: #fff4dd; color: #5c4518; line-height: 1.5; text-align: center; }
+
+/* Creator role */
+.admin-badge--creator { background: #e6f2ea !important; color: #2c5f40 !important; }
+.admin-badge--pending { background: #fff4dd !important; color: #8a5a00 !important; }
+.creator-requests { display: grid; gap: 8px; margin: 0 0 14px; }
+.creator-request { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px; align-items: start; padding: 12px 14px; border-radius: 14px; background: #eef5ff; border: 1px solid #c9dbf5; color: #1f3a5f; }
+.creator-request-icon { font-size: 22px; }
+.creator-request-text { display: grid; gap: 2px; min-width: 0; }
+.creator-request-text small { opacity: 0.75; font-size: 12.5px; overflow-wrap: anywhere; }
+.creator-request-text q { font-style: italic; margin-top: 2px; }
+.creator-request-actions, .role-actions { grid-column: 2; display: flex; gap: 12px; align-items: center; margin-top: 4px; }
+.creator-approve { padding: 8px 14px; border-radius: 10px; background: #2e8b57; color: #fff; font-weight: 600; font-size: 13px; }
+.role-control { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 10px; padding: 12px; margin-bottom: 12px; border-radius: 12px; background: #f7f2ea; }
+.role-control > span:first-child { display: grid; gap: 2px; min-width: 0; flex: 1 1 200px; }
+.role-control small { color: #6f6a62; font-size: 12.5px; }
+.role-control .role-actions { margin: 0; }
+.mine-create textarea { padding: 10px 12px; border-radius: 12px; border: 2px solid #e2d9ca; font: inherit; font-size: 15px; resize: vertical; }

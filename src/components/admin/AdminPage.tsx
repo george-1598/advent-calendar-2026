@@ -8,6 +8,7 @@ import QuestsTab from './QuestsTab';
 import ActivityFeed, { type Activity } from './ActivityFeed';
 import Reminders, { type DaySummary } from './Reminders';
 import HealthTab from './HealthTab';
+import CreatorRequests from './CreatorRequests';
 
 export default function AdminPage({ tab }: { tab: AdminTab }) {
   const { profile } = useAuth();
@@ -16,6 +17,8 @@ export default function AdminPage({ tab }: { tab: AdminTab }) {
   const [activity, setActivity] = useState<Activity | null>(null);
   const [focusDay, setFocusDay] = useState<{ day: number; at: number } | null>(null);
   const [errorCount, setErrorCount] = useState(0);
+  // Bumped when a creator request is decided, so the Players list reloads.
+  const [playersRev, setPlayersRev] = useState(0);
 
   const loadDays = useCallback(() => {
     supabase.rpc('admin_quests', { p_calendar: MAIN_CALENDAR }).then(({ data }) => data && setDays(data as DaySummary[]));
@@ -46,6 +49,7 @@ export default function AdminPage({ tab }: { tab: AdminTab }) {
   return (
     <section className="admin-page">
       <h1 className="page-title">Admin</h1>
+      <CreatorRequests onChanged={() => setPlayersRev((n) => n + 1)} />
       <Reminders quests={days} onFill={fill} />
       <div className="admin-tabs admin-tabs--4" role="tablist">
         <button role="tab" aria-selected={tab === 'players'} onClick={() => openAdmin('players')}>
@@ -61,7 +65,7 @@ export default function AdminPage({ tab }: { tab: AdminTab }) {
           Health{errorCount > 0 && <span className="tab-badge">{errorCount}</span>}
         </button>
       </div>
-      {tab === 'players' && <PlayersTab />}
+      {tab === 'players' && <PlayersTab key={playersRev} />}
       {tab === 'activity' && <ActivityFeed calendarId={MAIN_CALENDAR} activity={activity} onChanged={loadActivity} />}
       {tab === 'quests' && <QuestsTab focusDay={focusDay} onChanged={loadDays} />}
       {tab === 'health' && <HealthTab onCount={setErrorCount} />}

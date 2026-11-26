@@ -28,6 +28,8 @@ export interface Player {
   name: string;
   email: string;
   is_admin: boolean;
+  creator_status?: 'pending' | 'approved' | 'declined' | null;
+  creator_note?: string | null;
   created_at: string;
   last_seen_at: string | null;
   current_theme: ThemeId | null;
@@ -168,7 +170,7 @@ export default function PlayersTab({ calendarId = MAIN_CALENDAR }: { calendarId?
               <span className="admin-avatar">{p.name.slice(0, 1).toUpperCase()}</span>
               <span className="admin-player-id">
                 <strong>
-                  {p.name} {p.is_admin && <em className="admin-badge">admin</em>}
+                  {p.name} {p.is_admin ? <em className="admin-badge">admin</em> : p.creator_status === 'approved' ? <em className="admin-badge admin-badge--creator">creator</em> : p.creator_status === 'pending' ? <em className="admin-badge admin-badge--pending">asked</em> : null}
                 </strong>
                 <small>
                   Seen {ago(p.last_seen_at, now)} · {themeName(p.current_theme)}
@@ -199,6 +201,7 @@ export default function PlayersTab({ calendarId = MAIN_CALENDAR }: { calendarId?
 
             {isOpen && (
               <div className="admin-detail">
+                {calendarId === MAIN_CALENDAR && !p.is_admin && <RoleControl player={p} onChanged={load} />}
                 <dl className="admin-stats">
                   <div><dt>Email</dt><dd>{p.email}</dd></div>
                   <div><dt>Joined</dt><dd>{new Date(p.created_at).toLocaleDateString('en-GB')}</dd></div>
@@ -273,6 +276,50 @@ export default function PlayersTab({ calendarId = MAIN_CALENDAR }: { calendarId?
             Next ›
           </button>
         </nav>
+      )}
+    </div>
+  );
+}
+
+/** Admin: a player's role (player / creator), with the request if there is one. */
+function RoleControl({ player, onChanged }: { player: Player; onChanged: () => void }) {
+  const [busy, setBusy] = useState(false);
+  const set = async (status: 'approved' | 'declined' | null) => {
+    setBusy(true);
+    await supabase.rpc('admin_set_creator', { p_user: player.id, p_status: status });
+    setBusy(false);
+    onChanged();
+  };
+  const creator = player.creator_status === 'approved';
+  return (
+    <div className="role-control">
+      <span>
+        <strong>{creator ? '🎁 Creator' : '🎮 Player'}</strong>
+        <small>
+          {creator
+            ? 'Can make a calendar for friends.'
+            : player.creator_status === 'pending'
+              ? `Asked to become a creator${player.creator_note ? `: “${player.creator_note}”` : '.'}`
+              : player.creator_status === 'declined'
+                ? 'Asked before; you declined.'
+                : 'Plays calendars; can’t make one.'}
+        </small>
+      </span>
+      {creator ? (
+        <button className="admin-link admin-link--danger" onClick={() => set(null)} disabled={busy}>
+          Remove creator
+        </button>
+      ) : (
+        <span className="role-actions">
+          <button className="creator-approve" onClick={() => set('approved')} disabled={busy}>
+            Make creator
+          </button>
+          {player.creator_status === 'pending' && (
+            <button className="admin-link" onClick={() => set('declined')} disabled={busy}>
+              Decline
+            </button>
+          )}
+        </span>
       )}
     </div>
   );

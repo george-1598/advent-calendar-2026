@@ -7,6 +7,8 @@ import PlayersTab, { ago } from './PlayersTab';
 import QuestsTab from './QuestsTab';
 import ActivityFeed, { type Activity } from './ActivityFeed';
 import Reminders, { type DaySummary } from './Reminders';
+import RequestCreator from './RequestCreator';
+import { isCreator, useAuth } from '../../lib/auth';
 
 interface MyCalendar {
   id: string;
@@ -19,6 +21,21 @@ const MAX_FRIENDS = 3;
 
 /** The signed-in user's own calendar for up to 3 friends. */
 export default function MyCalendarPage({ tab }: { tab: MineTab }) {
+  const { profile, loading } = useAuth();
+  if (loading || !profile) return <section className="admin-page"><p className="admin-muted">Loading…</p></section>;
+  return isCreator(profile) ? <CreatorPage tab={tab} /> : <PlayerPage />;
+}
+
+/** Players see the request page (and whether an old calendar of theirs is paused). */
+function PlayerPage() {
+  const [paused, setPaused] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.rpc('my_calendar').then(({ data }) => setPaused((data as MyCalendar | null)?.title ?? null));
+  }, []);
+  return <RequestCreator pausedTitle={paused} />;
+}
+
+function CreatorPage({ tab }: { tab: MineTab }) {
   const { refresh: refreshCalendars } = useCalendars();
   const [cal, setCal] = useState<MyCalendar | null | undefined>(undefined);
   const [error, setError] = useState<string | null>(null);
