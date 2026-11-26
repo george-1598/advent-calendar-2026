@@ -1,0 +1,21 @@
+/** Ideas for the 🎲 button: the two ends of the scale and a clue (the creator sets the spot). */
+export const WAVELENGTH_EXAMPLES: { left: string; right: string; clue: string }[] = [
+  { left: 'Quiet place', right: 'Loud place', clue: 'Our living room on Christmas morning' },
+  { left: 'Naughty', right: 'Nice', clue: 'Me this year 😇' },
+  { left: 'Cold', right: 'Hot', clue: 'A mug of mulled wine' },
+  { left: 'Worst Christmas song', right: 'Best Christmas song', clue: 'Last Christmas' },
+  { left: 'Overrated film', right: 'Underrated film', clue: 'Love Actually' },
+  { left: 'Easy to wrap', right: 'Impossible to wrap', clue: 'A bicycle' },
+  { left: 'Healthy', right: 'Unhealthy', clue: 'A big slice of cozonac' },
+  { left: 'Cheap date', right: 'Fancy date', clue: 'Our first date' },
+  { left: 'Unromantic', right: 'Romantic', clue: 'Watching football together' },
+  { left: 'Calm', right: 'Chaos', clue: 'Our kitchen while baking cookies' },
+  { left: 'Useless gift', right: 'Perfect gift', clue: 'Fluffy socks' },
+  { left: 'Scary', right: 'Cozy', clue: 'A snowstorm outside the window' },
+  { left: 'Childish', right: 'Grown-up', clue: 'Building a snowman' },
+  { left: 'Terrible singer', right: 'Amazing singer', clue: 'Me singing in the car' },
+  { left: 'Morning person', right: 'Night owl', clue: 'Me on a weekend' },
+  { left: 'Never', right: 'All the time', clue: 'How often I think of you ❤️' },
+  { left: 'Bad idea', right: 'Great idea', clue: 'Opening presents on Christmas Eve' },
+  { left: 'Boring', right: 'Exciting', clue: 'Untangling Christmas lights' },
+];

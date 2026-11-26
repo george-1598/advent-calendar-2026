@@ -1,7 +1,7 @@
 export type GameKind =
   | 'riddle' | 'wordle' | 'song' | 'map' | 'quiz' | 'timeline' | 'anagram' | 'treasure'
   | 'morse' | 'zoom' | 'memory' | 'emoji' | 'hangman' | 'cipher' | 'hotcold'
-  | 'truths' | 'chain' | 'suspects' | 'einstein';
+  | 'truths' | 'chain' | 'suspects' | 'einstein' | 'wavelength';
 
 export const GAME_KINDS: { id: GameKind; label: string }[] = [
   { id: 'riddle', label: 'Riddle / question (type the answer)' },
@@ -22,6 +22,7 @@ export const GAME_KINDS: { id: GameKind; label: string }[] = [
   { id: 'truths', label: 'Two truths and a lie' },
   { id: 'suspects', label: 'The four suspects (who did it?)' },
   { id: 'einstein', label: 'Einstein puzzle (logic grid mystery)' },
+  { id: 'wavelength', label: 'Wavelength (set the needle on a scale)' },
   { id: 'chain', label: 'Multi-step chain (several games in a row)' },
 ];
 
@@ -67,6 +68,8 @@ export interface GameContent {
   suspects?: { name: string; says: { type: 'did' | 'didnt' | 'lying' | 'truthful'; target: number } }[];
   /** einstein: suspects, categories, structured clues and the question */
   einstein?: import('./einsteinLogic').EinsteinPuzzle;
+  /** wavelength: the two ends of the scale and the clue */
+  spectrum?: { left: string; right: string; clue: string };
   /** chain: the games, in order */
   parts?: { kind: GameKind; content: GameContent }[];
 }

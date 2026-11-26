@@ -25,6 +25,7 @@ const HotCold = lazy(() => reloadIfStale(import('./HotCold')));
 const Truths = lazy(() => reloadIfStale(import('./Truths')));
 const Suspects = lazy(() => reloadIfStale(import('./Suspects')));
 const Einstein = lazy(() => reloadIfStale(import('./Einstein')));
+const Wavelength = lazy(() => reloadIfStale(import('./Wavelength')));
 
 const GAMES: Record<GameKind, ComponentType<GameProps>> = {
   riddle: Riddle,
@@ -45,6 +46,7 @@ const GAMES: Record<GameKind, ComponentType<GameProps>> = {
   truths: Truths,
   suspects: Suspects,
   einstein: Einstein,
+  wavelength: Wavelength,
   chain: Chain,
 };
 

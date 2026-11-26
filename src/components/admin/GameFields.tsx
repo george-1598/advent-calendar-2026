@@ -8,6 +8,8 @@ import { useMelodyPlayer } from '../games/Song';
 import { TILE_ATTRIBUTION, TILE_URL, pinIcon } from '../games/MapPin';
 import QuestImage, { uploadQuestImage } from '../games/QuestImage';
 import { useEditorCalendar } from './editorCalendar';
+import Dial from '../games/Dial';
+import { WAVELENGTH_EXAMPLES } from '../games/wavelengthExamples';
 import { CLAIMS, EXAMPLE_SUSPECTS, solve, statementText, type ClaimType, type Suspect } from '../games/suspectsLogic';
 import { EXAMPLE_EINSTEIN, EXAMPLE_STORY, SIZE, autoNegative, clueText, questionText, setupProblem, solve as solveEinstein, type Clue, type EinsteinPuzzle, type Ref, type Relation } from '../games/einsteinLogic';
 import { MAIN_CALENDAR } from '../../lib/calendars';
@@ -49,6 +51,12 @@ export function cleanAnswers(kind: GameKind, answers: string[]): string[] {
 /** Returns an error message if the game isn't playable yet. */
 export function validateGame(kind: GameKind, content: GameContent, answers: string[]): string | null {
   switch (kind) {
+    case 'wavelength': {
+      const sp = content.spectrum;
+      if (!sp?.left.trim() || !sp?.right.trim()) return 'Write both ends of the scale.';
+      if (!sp.clue.trim()) return 'Write the clue.';
+      return /^\d+(\.\d+)?,\d+$/.test(answers[0] ?? '') ? null : 'Set the secret spot on the dial.';
+    }
     case 'einstein': {
       const pz = content.einstein;
       if (!pz) return 'Set up the puzzle.';
@@ -351,6 +359,13 @@ export default function GameFields({ day, kind, content, answers, onChange }: Pr
         <>
           {prompt('Intro (optional)', 'e.g. How well do you really know me? 😏', 2)}
           <TruthsFields content={content} answers={answers} onChange={onChange} />
+        </>
+      );
+    case 'wavelength':
+      return (
+        <>
+          {prompt('Text above the clue (optional)', 'e.g. Are we on the same wavelength? 📻', 2)}
+          <WavelengthFields content={content} answers={answers} onChange={onChange} />
         </>
       );
     case 'einstein':
@@ -1100,6 +1115,63 @@ function EinsteinFields({ content, onChange }: { content: GameContent; onChange:
       <button type="button" className="admin-link" onClick={() => commit(EXAMPLE_EINSTEIN, { prompt: EXAMPLE_STORY })}>
         Reset to the Christmas Eve example
       </button>
+    </div>
+  );
+}
+
+const PRECISION = [
+  { tol: 10, label: 'Generous (wide target)' },
+  { tol: 7, label: 'Normal' },
+  { tol: 4, label: 'Tight (needs a good guess)' },
+];
+
+function WavelengthFields({ content, answers, onChange }: { content: GameContent; answers: string[]; onChange: Props['onChange'] }) {
+  const sp = content.spectrum ?? { left: '', right: '', clue: '' };
+  const [c0, t0] = (answers[0] ?? '').split(',').map(Number);
+  const center = Number.isFinite(c0) ? c0 : 50;
+  const tol = Number.isFinite(t0) ? t0 : 7;
+  const commit = (next: typeof sp, c = center, t = tol) => onChange({ ...content, spectrum: next }, [`${Math.round(c)},${t}`]);
+  // New wavelength games start from a random example (the spot still needs setting).
+  useEffect(() => {
+    if (!content.spectrum) commit(WAVELENGTH_EXAMPLES[Math.floor(Math.random() * WAVELENGTH_EXAMPLES.length)], 50, 7);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const roll = () => {
+    const others = WAVELENGTH_EXAMPLES.filter((e) => e.clue !== sp.clue);
+    commit(others[Math.floor(Math.random() * others.length)]);
+  };
+  return (
+    <div className="admin-wavelength">
+      <div className="admin-ein-wording">
+        <label>
+          <span>Left end</span>
+          <input value={sp.left} onChange={(e) => commit({ ...sp, left: e.target.value })} placeholder="e.g. Quiet place" />
+        </label>
+        <label>
+          <span>Right end</span>
+          <input value={sp.right} onChange={(e) => commit({ ...sp, right: e.target.value })} placeholder="e.g. Loud place" />
+        </label>
+      </div>
+      <label>
+        <span>The clue</span>
+        <input value={sp.clue} onChange={(e) => commit({ ...sp, clue: e.target.value })} placeholder="e.g. Our living room on Christmas morning" />
+      </label>
+      <button type="button" className="admin-link" onClick={roll}>
+        🎲 Suggest another example
+      </button>
+      <span className="admin-wl-label">Drag the needle to the secret spot</span>
+      <Dial value={center} onChange={(v) => commit(sp, v)} target={{ center, tol }} left={sp.left} right={sp.right} label="Secret spot" />
+      <label>
+        <span>Precision</span>
+        <select value={tol} onChange={(e) => commit(sp, center, Number(e.target.value))}>
+          {PRECISION.map((p) => (
+            <option key={p.tol} value={p.tol}>
+              {p.label}
+            </option>
+          ))}
+        </select>
+      </label>
+      <small>The blue middle band solves it. Players hear “so close” in orange, “getting warm” in yellow, and never which way to move.</small>
     </div>
   );
 }

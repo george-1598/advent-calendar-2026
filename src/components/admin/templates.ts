@@ -138,6 +138,15 @@ export const TEMPLATES: QuestTemplate[] = [
     hint: 'Start with the drinks: three rooms are tied to a drink, so the fourth room gets the last one\nThe person drinking hot chocolate has the key\nWho drinks hot chocolate?',
   },
   {
+    id: 'wavelength',
+    label: '🎚️ Wavelength: naughty or nice?',
+    title: 'Same wavelength?',
+    kind: 'wavelength',
+    content: { prompt: 'Are we on the same wavelength? 📻', spectrum: { left: 'Naughty', right: 'Nice', clue: 'Me this year 😇' } },
+    answers: ['78,7'],
+    hint: 'I think you’ve been more nice than naughty…\nDefinitely on the nice side\nAlmost as nice as it gets',
+  },
+  {
     id: 'map',
     label: '📍 Map pin: Santa’s village',
     title: 'Where does Santa live?',
