@@ -6,6 +6,8 @@ import { useNow } from '../lib/useNow';
 import { isUnlocked, TOTAL_DAYS } from '../lib/time';
 import { GAME_KINDS } from './games/types';
 import { Confetti } from './Finale';
+import { useProgress } from '../lib/progress';
+import { badgeIcon } from '../lib/badgeIcons';
 
 interface WrappedData {
   name: string;
@@ -42,7 +44,7 @@ function duration(s: number): string {
   return m ? `${h} h ${m} min` : `${h} hours`;
 }
 
-function slidesFor(w: WrappedData, from: string | null): Slide[] {
+function slidesFor(w: WrappedData, from: string | null, icons: string): Slide[] {
   const done = w.solved + w.revealed;
   const kind = GAME_KINDS.find((k) => k.id === w.favourite_kind)?.label.split(' (')[0];
   const s: Slide[] = [
@@ -55,7 +57,7 @@ function slidesFor(w: WrappedData, from: string | null): Slide[] {
   if (w.night_owl > 0) s.push({ bg: '#0a1430', emoji: '🦉', kicker: 'Night owl', big: String(w.night_owl), text: `${w.night_owl === 1 ? 'door' : 'doors'} opened between midnight and 6 am.` });
   if (kind) s.push({ bg: '#b5651d', emoji: '🎮', kicker: 'Most played', big: kind, text: 'Your favourite kind of puzzle.' });
   s.push({ bg: '#2f4f4f', emoji: '🤝', kicker: 'Kindness', big: `${w.thanks_sent} 💌`, text: `${w.thanks_sent === 1 ? 'thank-you' : 'thank-yous'} sent${w.hints_received ? ` · ${w.hints_received} ${w.hints_received === 1 ? 'hint' : 'hints'} received` : ''}.` });
-  if (w.letters) s.push({ bg: '#7a231c', emoji: '🔤', kicker: 'Your letters', big: w.letters, text: 'Every badge you collected, in order.' });
+  if (icons) s.push({ bg: '#7a231c', emoji: '⭐', kicker: 'Your badges', big: icons, text: 'Every badge you collected this December.' });
   s.push({ bg: '#1e5a3c', emoji: '🎄', kicker: 'That’s a wrap', big: 'Merry Christmas!', text: `${w.wrong_total} wrong guesses, ${done} surprises. See you next December.` });
   return s;
 }
@@ -87,7 +89,9 @@ function WrappedStory({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     supabase.rpc('my_wrapped', { p_calendar: currentId }).then(({ data }) => setData(data as WrappedData | null));
   }, [currentId]);
-  const slides = data ? slidesFor(data, current.is_main ? null : current.owner_name) : [];
+  const { byDay } = useProgress();
+  const icons = Array.from({ length: TOTAL_DAYS }, (_, k) => k + 1).filter((d) => byDay[d]?.solved_at).map(badgeIcon).join('');
+  const slides = data ? slidesFor(data, current.is_main ? null : current.owner_name, icons) : [];
   const last = i >= slides.length - 1;
   const next = () => (last ? onClose() : setI((n) => n + 1));
   const prev = () => setI((n) => Math.max(0, n - 1));

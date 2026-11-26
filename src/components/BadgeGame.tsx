@@ -10,6 +10,8 @@ export interface BadgeGameState {
   has_phrase: boolean;
   layout?: number[];
   tiles?: { day: number; char: string }[];
+  /** How many badges are collected (the characters come only when all 25 are). */
+  count?: number;
   complete?: boolean;
   attempts?: number;
   solved_at?: string | null;
@@ -184,7 +186,7 @@ function BadgeGameModal({ game, onUpdate, onClose }: { game: BadgeGameState; onU
 /** Badges page: progress toward the game. */
 export function BadgeGameProgress({ game }: { game: BadgeGameState }) {
   if (!game.has_phrase || game.complete) return null;
-  const n = game.tiles?.length ?? 0;
+  const n = game.count ?? game.tiles?.length ?? 0;
   return (
     <p className="bg-progress">
       ⭐ {n} of 25 badges collected. Collect them all: something special happens at the end ✨

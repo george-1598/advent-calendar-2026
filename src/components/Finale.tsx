@@ -6,6 +6,7 @@ import { useCalendars } from '../lib/calendars';
 import { TOTAL_DAYS } from '../lib/time';
 import { playChime } from '../lib/sound';
 import { BadgeGameBanner, useBadgeGame } from './BadgeGame';
+import { badgeIcon } from '../lib/badgeIcons';
 
 interface FinaleInfo {
   unlocked: boolean;
@@ -32,12 +33,12 @@ export function useFinale(): FinaleInfo | null {
   return info;
 }
 
-/** The badge letters of solved days, in day order (given-up days are marked). */
+/** The badges (festive icons) of solved days, in day order (given-up days are marked). */
 export function useLetters(): { letter: string; day: number; gaveUp: boolean }[] {
   const { byDay } = useProgress();
   return Array.from({ length: TOTAL_DAYS }, (_, i) => byDay[i + 1])
     .filter((p) => p?.solved_at)
-    .map((p) => ({ letter: p!.badge_letter || '★', day: p!.day, gaveUp: Boolean(p!.gave_up) }));
+    .map((p) => ({ letter: badgeIcon(p!.day), day: p!.day, gaveUp: Boolean(p!.gave_up) }));
 }
 
 export function FinaleBanner() {
@@ -88,7 +89,7 @@ function FinaleReveal({ finale, onClose }: { finale: FinaleInfo; onClose: () => 
     <div className="finale" role="dialog" aria-modal="true" aria-label="Finale" onClick={onClose}>
       {done && <Confetti />}
       <div className="finale-card" onClick={(e) => e.stopPropagation()}>
-        {letters.length > 0 && <span className="finale-kicker">Your letters</span>}
+        {letters.length > 0 && <span className="finale-kicker">Your badges</span>}
         <div className="finale-letters" aria-label={letters.map((l) => l.letter).join('')}>
           {letters.map((l, i) => (
             <span key={l.day} className={['finale-letter', i < shown && 'is-in', l.gaveUp && 'is-grey'].filter(Boolean).join(' ')} style={{ '--i': i } as CSSProperties}>

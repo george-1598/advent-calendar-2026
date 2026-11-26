@@ -10,6 +10,7 @@ import { dayColor, goHome, openAdmin, openDayPage, openMine } from '../lib/route
 import { StarIcon, LockIcon } from './icons';
 import { DayHints, ThanksBox } from './DayNotes';
 import DayHelp from './DayHelp';
+import { badgeIcon } from '../lib/badgeIcons';
 import ErrorBoundary from './ErrorBoundary';
 import { MemoryBox } from './Memories';
 import DoorOpening, { doorSeen } from './DoorOpening';
@@ -156,11 +157,9 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
                   </p>
                 )}
                 <div className="day-reward-badge">
-                  {progress?.badge_letter ? (
-                    <span className="day-reward-letter">{progress.badge_letter}</span>
-                  ) : (
-                    <StarIcon className="day-reward-star" />
-                  )}
+                  <span className="day-reward-icon" aria-label="Today’s badge">
+                    {badgeIcon(day)}
+                  </span>
                 </div>
                 <span className="day-reward-kicker">{progress?.gave_up ? 'Your surprise' : 'Solved! Your surprise'}</span>
                 <p className="day-reward-text">{progress?.reward}</p>

@@ -1516,3 +1516,10 @@ span.feed-photo { height: 140px; }
 .howto-body { padding: 0 16px 14px 52px; display: grid; gap: 8px; animation: pop-in 0.25s var(--ease-out); }
 .howto-body p { margin: 0; color: #4a463f; font-size: 15px; line-height: 1.55; }
 .howto-tour { display: block; margin: 18px auto 0; padding: 10px 18px; border-radius: 999px; border: 2px solid #e2d9ca; background: #fffdf8; color: #7a231c; font-weight: 600; }
+
+/* Festive badge icons */
+.badge-icon { font-size: 30px; line-height: 1; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.18)); }
+.badge-icon.is-locked { filter: grayscale(1); opacity: 0.18; }
+.badge--grey .badge-icon { filter: grayscale(1); opacity: 0.7; }
+.day-reward-icon { font-size: 44px; line-height: 1; }
+.finale-letter { font-size: 26px; }
