@@ -1,6 +1,7 @@
 import type { GameContent, GameKind } from '../games/types';
 import { toMorse } from '../games/morseCode';
 import { EXAMPLE_SUSPECTS } from '../games/suspectsLogic';
+import { EXAMPLE_EINSTEIN, EXAMPLE_STORY } from '../games/einsteinLogic';
 
 /** A ready-made example quest. Loads into the editor; the gift is left for the creator to write. */
 export interface QuestTemplate {
@@ -126,6 +127,15 @@ export const TEMPLATES: QuestTemplate[] = [
     content: { prompt: 'Someone ate the last gingerbread cookie 🍪 Four suspects, four statements…', suspects: EXAMPLE_SUSPECTS },
     answers: ['2'],
     hint: 'Try each suspect as the culprit and count the true statements',
+  },
+  {
+    id: 'einstein',
+    label: '🗝️ Einstein puzzle: the Golden Christmas Key',
+    title: 'The Golden Christmas Key',
+    kind: 'einstein',
+    content: { prompt: EXAMPLE_STORY, einstein: EXAMPLE_EINSTEIN },
+    answers: ['2'],
+    hint: 'Start with the drinks: three rooms are tied to a drink, so the fourth room gets the last one\nThe person drinking hot chocolate has the key\nWho drinks hot chocolate?',
   },
   {
     id: 'map',

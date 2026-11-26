@@ -9,6 +9,7 @@ import { TILE_ATTRIBUTION, TILE_URL, pinIcon } from '../games/MapPin';
 import QuestImage, { uploadQuestImage } from '../games/QuestImage';
 import { useEditorCalendar } from './editorCalendar';
 import { CLAIMS, EXAMPLE_SUSPECTS, solve, statementText, type ClaimType, type Suspect } from '../games/suspectsLogic';
+import { EXAMPLE_EINSTEIN, EXAMPLE_STORY, SIZE, autoNegative, clueText, questionText, setupProblem, solve as solveEinstein, type Clue, type EinsteinPuzzle, type Ref, type Relation } from '../games/einsteinLogic';
 import { MAIN_CALENDAR } from '../../lib/calendars';
 import { GAME_KINDS, MEMORY_DONE } from '../games/types';
 import { plain, toMorse } from '../games/morseCode';
@@ -48,6 +49,16 @@ export function cleanAnswers(kind: GameKind, answers: string[]): string[] {
 /** Returns an error message if the game isn't playable yet. */
 export function validateGame(kind: GameKind, content: GameContent, answers: string[]): string | null {
   switch (kind) {
+    case 'einstein': {
+      const pz = content.einstein;
+      if (!pz) return 'Set up the puzzle.';
+      const problem = setupProblem(pz);
+      if (problem) return problem;
+      const r = solveEinstein(pz);
+      if (!r.solutions) return 'No arrangement fits all the clues — one of them contradicts the others.';
+      if (r.answer === null) return 'The clues allow more than one answer — add or change a clue.';
+      return answers[0] === String(r.answer) ? null : 'The answer is out of date — change any field to refresh it.';
+    }
     case 'suspects': {
       const sus = (content.suspects ?? []) as Suspect[];
       if (sus.length !== 4) return 'Add the four suspects.';
@@ -340,6 +351,13 @@ export default function GameFields({ day, kind, content, answers, onChange }: Pr
         <>
           {prompt('Intro (optional)', 'e.g. How well do you really know me? 😏', 2)}
           <TruthsFields content={content} answers={answers} onChange={onChange} />
+        </>
+      );
+    case 'einstein':
+      return (
+        <>
+          {prompt('Story', 'e.g. Four guests attended a mysterious Christmas Eve gathering…', 4)}
+          <EinsteinFields content={content} onChange={onChange} />
         </>
       );
     case 'suspects':
@@ -893,6 +911,194 @@ function SuspectsFields({ content, onChange }: { content: GameContent; onChange:
       )}
       <button type="button" className="admin-link" onClick={() => commit(EXAMPLE_SUSPECTS)}>
         Reset to the example
+      </button>
+    </div>
+  );
+}
+
+const RELATIONS: { id: Relation; label: string }[] = [
+  { id: 'is', label: 'is the same person as' },
+  { id: 'not', label: 'is not' },
+  { id: 'neither', label: 'is neither … nor …' },
+  { id: 'next', label: 'is right next to' },
+];
+const refKey = (r: Ref) => `${r[0]}:${r[1]}`;
+const parseRef = (v: string): Ref => v.split(':').map(Number) as Ref;
+
+function EinsteinFields({ content, onChange }: { content: GameContent; onChange: Props['onChange'] }) {
+  const pz = content.einstein ?? EXAMPLE_EINSTEIN;
+  const commit = (next: EinsteinPuzzle, extra: Partial<GameContent> = {}) => {
+    const r = setupProblem(next) ? null : solveEinstein(next);
+    onChange({ ...content, ...extra, einstein: next }, r && r.solutions && r.answer !== null ? [String(r.answer)] : []);
+  };
+  // A new Einstein puzzle starts from the Christmas Eve example.
+  useEffect(() => {
+    if (!content.einstein) commit(EXAMPLE_EINSTEIN, content.prompt ? {} : { prompt: EXAMPLE_STORY });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const verdict = setupProblem(pz) ?? null;
+  const result = verdict ? null : solveEinstein(pz);
+
+  const setPerson = (i: number, v: string) => commit({ ...pz, people: pz.people.map((x, k) => (k === i ? v : x)) });
+  const setCat = (ci: number, patch: Partial<EinsteinPuzzle['categories'][number]>) =>
+    commit({
+      ...pz,
+      categories: pz.categories.map((c, k) => (k === ci ? { ...c, ...patch } : patch.row ? { ...c, row: false } : c)),
+    });
+  const setClue = (i: number, patch: Partial<Clue>) => commit({ ...pz, clues: pz.clues.map((c, k) => (k === i ? { ...c, ...patch } : c)) });
+  const moveClue = (i: number, d: -1 | 1) => {
+    const j = i + d;
+    if (j < 0 || j >= pz.clues.length) return;
+    const next = [...pz.clues];
+    [next[i], next[j]] = [next[j], next[i]];
+    commit({ ...pz, clues: next });
+  };
+
+  // Everything a clue can talk about: the suspects, then each category's options.
+  const refOptions = (
+    <>
+      <optgroup label="Suspects">
+        {pz.people.map((n, i) => (
+          <option key={i} value={refKey([-1, i])}>
+            {n || `Suspect ${i + 1}`}
+          </option>
+        ))}
+      </optgroup>
+      {pz.categories.map((c, ci) => (
+        <optgroup key={ci} label={c.name || `Category ${ci + 1}`}>
+          {c.values.map((v, vi) => (
+            <option key={vi} value={refKey([ci, vi])}>
+              {v || `Option ${vi + 1}`}
+            </option>
+          ))}
+        </optgroup>
+      ))}
+    </>
+  );
+
+  return (
+    <div className="admin-einstein">
+      <fieldset className="admin-suspect">
+        <legend>Suspects</legend>
+        <div className="admin-ein-grid">
+          {pz.people.map((n, i) => (
+            <input key={i} value={n} onChange={(e) => setPerson(i, e.target.value)} placeholder={EXAMPLE_EINSTEIN.people[i]} aria-label={`Suspect ${i + 1}`} />
+          ))}
+        </div>
+      </fieldset>
+
+      {pz.categories.map((c, ci) => (
+        <fieldset key={ci} className="admin-suspect">
+          <legend>Category {ci + 1}</legend>
+          <input value={c.name} onChange={(e) => setCat(ci, { name: e.target.value })} placeholder={EXAMPLE_EINSTEIN.categories[ci].name} aria-label="Category name" />
+          <div className="admin-ein-grid">
+            {c.values.map((v, vi) => (
+              <input key={vi} value={v} onChange={(e) => setCat(ci, { values: c.values.map((x, k) => (k === vi ? e.target.value : x)) })} placeholder={EXAMPLE_EINSTEIN.categories[ci].values[vi]} aria-label={`Option ${vi + 1}`} />
+            ))}
+          </div>
+          <div className="admin-ein-wording">
+            <label>
+              <span>“Alice …”</span>
+              <input value={c.verb} onChange={(e) => setCat(ci, { verb: e.target.value })} placeholder={EXAMPLE_EINSTEIN.categories[ci].verb} />
+            </label>
+            <label>
+              <span>“the person …”</span>
+              <input value={c.noun} onChange={(e) => setCat(ci, { noun: e.target.value })} placeholder={EXAMPLE_EINSTEIN.categories[ci].noun} />
+            </label>
+            <label className="admin-ein-neg">
+              <span>“Alice … (not)”: change it if it reads oddly</span>
+              <input value={c.neg ?? ''} onChange={(e) => setCat(ci, { neg: e.target.value })} placeholder={autoNegative(c.verb) ?? 'e.g. did not live in the'} />
+            </label>
+          </div>
+          <small>
+            Reads as: “{pz.people[0] || 'Alice'} {c.verb.trim()} {c.values[0]}” and “the person {c.noun.trim()} {c.values[0]}”.
+          </small>
+          <label className="admin-check">
+            <input type="checkbox" checked={Boolean(c.row)} onChange={(e) => setCat(ci, { row: e.target.checked })} />
+            <span>These are in a row, in this order (allows “right next to” clues)</span>
+          </label>
+        </fieldset>
+      ))}
+
+      <fieldset className="admin-suspect">
+        <legend>Clues ({pz.clues.length})</legend>
+        <small>Players reveal them one at a time, in this order.</small>
+        <ol className="admin-ein-clues">
+          {pz.clues.map((c, i) => (
+            <li key={i}>
+              <div className="admin-ein-clue">
+                <select value={refKey(c.a)} onChange={(e) => setClue(i, { a: parseRef(e.target.value) })} aria-label="Who or what">
+                  {refOptions}
+                </select>
+                <select
+                  value={c.rel}
+                  onChange={(e) => {
+                    const rel = e.target.value as Relation;
+                    const b2: Ref | undefined = rel === 'neither' ? [c.b[0], (c.b[1] + 1) % SIZE] : undefined;
+                    setClue(i, { rel, b2 });
+                  }}
+                  aria-label="Relation"
+                >
+                  {RELATIONS.map((r) => (
+                    <option key={r.id} value={r.id}>
+                      {r.label}
+                    </option>
+                  ))}
+                </select>
+                <select value={refKey(c.b)} onChange={(e) => setClue(i, { b: parseRef(e.target.value), b2: c.rel === 'neither' ? [parseRef(e.target.value)[0], (parseRef(e.target.value)[1] + 1) % SIZE] : undefined })} aria-label="Who or what (2)">
+                  {refOptions}
+                </select>
+                {c.rel === 'neither' && (
+                  <select value={c.b2 ? refKey(c.b2) : ''} onChange={(e) => setClue(i, { b2: parseRef(e.target.value) })} aria-label="Nor">
+                    {refOptions}
+                  </select>
+                )}
+              </div>
+              <div className="admin-ein-clue-foot">
+                <q>{clueText(pz, c)}</q>
+                <span className="admin-step-moves">
+                  <button type="button" onClick={() => moveClue(i, -1)} disabled={i === 0} aria-label="Move clue up">↑</button>
+                  <button type="button" onClick={() => moveClue(i, 1)} disabled={i === pz.clues.length - 1} aria-label="Move clue down">↓</button>
+                  <button type="button" onClick={() => commit({ ...pz, clues: pz.clues.filter((_, k) => k !== i) })} aria-label="Remove clue">✕</button>
+                </span>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <button type="button" className="admin-link" onClick={() => commit({ ...pz, clues: [...pz.clues, { a: [-1, 0], rel: 'not', b: [0, 0] }] })}>
+          + Add a clue
+        </button>
+      </fieldset>
+
+      <label>
+        <span>The question</span>
+        <select value={refKey(pz.question)} onChange={(e) => commit({ ...pz, question: parseRef(e.target.value) })}>
+          {pz.categories.map((c, ci) => (
+            <optgroup key={ci} label={c.name}>
+              {c.values.map((v, vi) => (
+                <option key={vi} value={refKey([ci, vi])}>
+                  Who {c.verb.trim()} {v}?
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </label>
+
+      {verdict ? (
+        <p className="form-error">{verdict}</p>
+      ) : !result?.solutions ? (
+        <p className="form-error">No arrangement fits all the clues: one of them contradicts the others.</p>
+      ) : result.answer === null ? (
+        <p className="form-error">The clues allow more than one answer to “{questionText(pz)}”. Add or change a clue.</p>
+      ) : (
+        <p className="form-info">
+          ✓ Solvable: <strong>{pz.people[result.answer]}</strong> is the answer to “{questionText(pz)}”
+          {result.solutions === 1 ? ' (the clues pin down everything).' : ' (the clues don’t pin down everything else, but the answer is certain).'}
+        </p>
+      )}
+      <button type="button" className="admin-link" onClick={() => commit(EXAMPLE_EINSTEIN, { prompt: EXAMPLE_STORY })}>
+        Reset to the Christmas Eve example
       </button>
     </div>
   );

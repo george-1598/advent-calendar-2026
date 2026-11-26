@@ -147,7 +147,11 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
                   <p className="day-revealed">
                     The answer was{' '}
                     <strong>
-                      {quest.kind === 'suspects' ? (quest.content.suspects?.[Number(progress.answer)]?.name ?? progress.answer) : progress.answer}
+                      {quest.kind === 'suspects'
+                        ? (quest.content.suspects?.[Number(progress.answer)]?.name ?? progress.answer)
+                        : quest.kind === 'einstein'
+                          ? (quest.content.einstein?.people[Number(progress.answer)] ?? progress.answer)
+                          : progress.answer}
                     </strong>
                   </p>
                 )}

@@ -1,7 +1,7 @@
 export type GameKind =
   | 'riddle' | 'wordle' | 'song' | 'map' | 'quiz' | 'timeline' | 'anagram' | 'treasure'
   | 'morse' | 'zoom' | 'memory' | 'emoji' | 'hangman' | 'cipher' | 'hotcold'
-  | 'truths' | 'chain' | 'suspects';
+  | 'truths' | 'chain' | 'suspects' | 'einstein';
 
 export const GAME_KINDS: { id: GameKind; label: string }[] = [
   { id: 'riddle', label: 'Riddle / question (type the answer)' },
@@ -21,6 +21,7 @@ export const GAME_KINDS: { id: GameKind; label: string }[] = [
   { id: 'hotcold', label: 'Hot & cold (find the spot in a photo)' },
   { id: 'truths', label: 'Two truths and a lie' },
   { id: 'suspects', label: 'The four suspects (who did it?)' },
+  { id: 'einstein', label: 'Einstein puzzle (logic grid mystery)' },
   { id: 'chain', label: 'Multi-step chain (several games in a row)' },
 ];
 
@@ -64,6 +65,8 @@ export interface GameContent {
   rounds?: { statements: string[] }[];
   /** suspects: four people, each with one structured statement */
   suspects?: { name: string; says: { type: 'did' | 'didnt' | 'lying' | 'truthful'; target: number } }[];
+  /** einstein: suspects, categories, structured clues and the question */
+  einstein?: import('./einsteinLogic').EinsteinPuzzle;
   /** chain: the games, in order */
   parts?: { kind: GameKind; content: GameContent }[];
 }
