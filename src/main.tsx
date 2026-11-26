@@ -1,6 +1,8 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import ErrorBoundary from './components/ErrorBoundary';
+import { installErrorHandlers } from './lib/errorLog';
 import { AuthProvider } from './lib/auth';
 import { ProgressProvider } from './lib/progress';
 import { CalendarsProvider } from './lib/calendars';
@@ -11,8 +13,11 @@ import './themes.css';
 import './themes-more.css';
 import './themes-3.css';
 
+installErrorHandlers();
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <ErrorBoundary>
     <AuthProvider>
       <CalendarsProvider>
         <ProgressProvider>
@@ -24,6 +29,7 @@ createRoot(document.getElementById('root')!).render(
         </ProgressProvider>
       </CalendarsProvider>
     </AuthProvider>
+    </ErrorBoundary>
   </StrictMode>,
 );
 

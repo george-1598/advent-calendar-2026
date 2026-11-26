@@ -10,6 +10,7 @@ import { dayColor, goHome, openAdmin, openDayPage, openMine } from '../lib/route
 import { StarIcon, LockIcon } from './icons';
 import { DayHints, ThanksBox } from './DayNotes';
 import DayHelp from './DayHelp';
+import ErrorBoundary from './ErrorBoundary';
 import { MemoryBox } from './Memories';
 import DoorOpening, { doorSeen } from './DoorOpening';
 
@@ -130,7 +131,16 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
         {canOpen && quest && (
           <div className="day-card">
             {!solved && <DayHints day={day} />}
-            <Game key={`${calendarId}-${day}-${quest.kind}`} kind={quest.kind} day={day} content={quest.content ?? {}} solved={solved} code={code} />
+            <ErrorBoundary
+              key={`${calendarId}-${day}`}
+              fallback={
+                <p className="game-crash">
+                  🛠️ This game hit a snag on our side. It’s been reported, so try again a bit later (or reload the page).
+                </p>
+              }
+            >
+              <Game key={`${calendarId}-${day}-${quest.kind}`} kind={quest.kind} day={day} content={quest.content ?? {}} solved={solved} code={code} />
+            </ErrorBoundary>
             {solved ? (
               <div className={progress?.gave_up ? 'day-reward is-revealed' : 'day-reward'}>
                 {progress?.gave_up && progress.answer && (

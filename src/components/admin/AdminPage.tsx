@@ -7,6 +7,7 @@ import PlayersTab from './PlayersTab';
 import QuestsTab from './QuestsTab';
 import ActivityFeed, { type Activity } from './ActivityFeed';
 import Reminders, { type DaySummary } from './Reminders';
+import HealthTab from './HealthTab';
 
 export default function AdminPage({ tab }: { tab: AdminTab }) {
   const { profile } = useAuth();
@@ -14,6 +15,7 @@ export default function AdminPage({ tab }: { tab: AdminTab }) {
   const [days, setDays] = useState<DaySummary[] | null>(null);
   const [activity, setActivity] = useState<Activity | null>(null);
   const [focusDay, setFocusDay] = useState<{ day: number; at: number } | null>(null);
+  const [errorCount, setErrorCount] = useState(0);
 
   const loadDays = useCallback(() => {
     supabase.rpc('admin_quests', { p_calendar: MAIN_CALENDAR }).then(({ data }) => data && setDays(data as DaySummary[]));
@@ -25,6 +27,7 @@ export default function AdminPage({ tab }: { tab: AdminTab }) {
     if (!isAdmin) return;
     loadDays();
     loadActivity();
+    supabase.rpc('admin_errors').then(({ data }) => Array.isArray(data) && setErrorCount(data.length));
   }, [isAdmin, loadDays, loadActivity]);
 
   if (!isAdmin) {
@@ -44,7 +47,7 @@ export default function AdminPage({ tab }: { tab: AdminTab }) {
     <section className="admin-page">
       <h1 className="page-title">Admin</h1>
       <Reminders quests={days} onFill={fill} />
-      <div className="admin-tabs admin-tabs--3" role="tablist">
+      <div className="admin-tabs admin-tabs--4" role="tablist">
         <button role="tab" aria-selected={tab === 'players'} onClick={() => openAdmin('players')}>
           Players
         </button>
@@ -54,10 +57,14 @@ export default function AdminPage({ tab }: { tab: AdminTab }) {
         <button role="tab" aria-selected={tab === 'quests'} onClick={() => openAdmin('quests')}>
           Quests
         </button>
+        <button role="tab" aria-selected={tab === 'health'} onClick={() => openAdmin('health')}>
+          Health{errorCount > 0 && <span className="tab-badge">{errorCount}</span>}
+        </button>
       </div>
       {tab === 'players' && <PlayersTab />}
       {tab === 'activity' && <ActivityFeed calendarId={MAIN_CALENDAR} activity={activity} onChanged={loadActivity} />}
       {tab === 'quests' && <QuestsTab focusDay={focusDay} onChanged={loadDays} />}
+      {tab === 'health' && <HealthTab onCount={setErrorCount} />}
     </section>
   );
 }

@@ -1372,3 +1372,29 @@ span.feed-photo { height: 140px; }
 .gallery-big-photo { max-width: 100%; max-height: 78vh; border-radius: 12px; object-fit: contain; }
 .gallery-big p { margin: 0; text-align: center; font-size: 15px; }
 .install-steps { grid-column: 1 / -1; margin: 0; padding: 10px 12px 2px 32px; border-top: 1px solid #ece4d6; }
+
+/* Crash screen */
+.crash { min-height: 70vh; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 24px; text-align: center; }
+.crash-icon { font-size: 56px; }
+.crash h1 { margin: 0; font-size: 22px; }
+.crash p { margin: 0; color: #6f6a62; max-width: 340px; line-height: 1.5; }
+.crash .btn-primary { width: auto; padding-inline: 36px; }
+.crash-home { color: #7a231c; text-decoration: underline; font-size: 14px; }
+
+/* Health tab */
+.health-summary { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; padding: 14px 16px; }
+.health-summary > span:first-child { font-size: 26px; }
+.health-summary strong { display: block; }
+.health-summary small { color: #8a847c; }
+.health-summary.is-ok { background: #eef7f0; }
+.health-head { width: 100%; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 12px 14px; text-align: left; }
+.health-icon { font-size: 20px; }
+.health-text { display: grid; gap: 2px; min-width: 0; }
+.health-text strong { font-size: 14px; overflow-wrap: anywhere; }
+.health-text small { color: #8a847c; font-size: 12px; }
+.health-count { padding: 2px 8px; border-radius: 999px; background: #fdecef; color: #b3261e; font-weight: 700; font-size: 12px; }
+.health-detail { padding: 0 14px 14px; display: grid; gap: 6px; }
+.health-detail p { margin: 0; font-size: 12.5px; color: #6f6a62; }
+.health-url { overflow-wrap: anywhere; }
+.health-detail pre { margin: 0; padding: 10px; border-radius: 8px; background: #2b2420; color: #f3e6d2; font-size: 11px; line-height: 1.45; overflow-x: auto; white-space: pre-wrap; max-height: 260px; }
+.game-crash { margin: 0; padding: 14px; border-radius: 12px; background: #fff4dd; color: #5c4518; line-height: 1.5; text-align: center; }

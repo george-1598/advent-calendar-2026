@@ -8,7 +8,7 @@ import { useEffect, useState } from 'react';
  *   #/mine/…    → the user's own calendar for friends
  *   #/c/<id>/…  → any of the above, switching to calendar <id> first (treasure QR codes)
  */
-export type AdminTab = 'players' | 'activity' | 'quests';
+export type AdminTab = 'players' | 'activity' | 'quests' | 'health';
 export type MineTab = 'friends' | 'activity' | 'quests' | 'players';
 export type Route = (
   | { name: 'home' }
@@ -30,7 +30,7 @@ export function parseRoute(hash = window.location.hash): Route {
     const day = Number(m[1]);
     if (day >= 1 && day <= 25) return { name: 'day', day, code: m[2] ? decodeURIComponent(m[2]) : undefined };
   }
-  const a = hash.match(/^#\/admin(?:\/(players|activity|quests))?$/);
+  const a = hash.match(/^#\/admin(?:\/(players|activity|quests|health))?$/);
   if (a) return { name: 'admin', tab: (a[1] as AdminTab | undefined) ?? 'players' };
   const mine = hash.match(/^#\/mine(?:\/(friends|activity|quests|players))?$/);
   if (mine) return { name: 'mine', tab: (mine[1] as MineTab | undefined) ?? 'friends' };
