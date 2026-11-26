@@ -10,7 +10,7 @@ export default function ProfilePage() {
     <section className="page profile">
       <h1 className="page-title">Your profile</h1>
       <NameForm current={profile?.display_name ?? ''} onSaved={refreshProfile} />
-      <PasswordForm email={email} />
+      <PasswordForm />
       <p className="profile-email">
         Signed in with <strong>{email || '…'}</strong>
       </p>
@@ -45,8 +45,7 @@ function NameForm({ current, onSaved }: { current: string; onSaved: () => void }
   );
 }
 
-function PasswordForm({ email }: { email: string }) {
-  const [current, setCurrent] = useState('');
+function PasswordForm() {
   const [next, setNext] = useState('');
   const [again, setAgain] = useState('');
   const [busy, setBusy] = useState(false);
@@ -56,18 +55,11 @@ function PasswordForm({ email }: { email: string }) {
     setMessage(null);
     if (next.length < 6) return setMessage({ ok: false, text: 'The new password needs at least 6 characters.' });
     if (next !== again) return setMessage({ ok: false, text: 'The two new passwords don’t match.' });
-    if (next === current) return setMessage({ ok: false, text: 'That’s the same as your current password.' });
     setBusy(true);
-    // Confirm it's really you before changing it.
-    const check = await supabase.auth.signInWithPassword({ email, password: current });
-    if (check.error) {
-      setBusy(false);
-      return setMessage({ ok: false, text: 'Your current password isn’t right.' });
-    }
+    // Being signed in is enough: Supabase sets the new password for the current session's user.
     const { error } = await supabase.auth.updateUser({ password: next });
     setBusy(false);
     if (error) return setMessage({ ok: false, text: error.message });
-    setCurrent('');
     setNext('');
     setAgain('');
     setMessage({ ok: true, text: 'Password changed ✓ Use the new one next time you sign in.' });
@@ -75,10 +67,6 @@ function PasswordForm({ email }: { email: string }) {
   return (
     <form className="profile-card" onSubmit={save}>
       <h2>Password</h2>
-      <label>
-        <span>Current password</span>
-        <input type="password" value={current} onChange={(e) => setCurrent(e.target.value)} autoComplete="current-password" required />
-      </label>
       <label>
         <span>New password</span>
         <input type="password" value={next} onChange={(e) => setNext(e.target.value)} autoComplete="new-password" minLength={6} required />
@@ -88,7 +76,7 @@ function PasswordForm({ email }: { email: string }) {
         <input type="password" value={again} onChange={(e) => setAgain(e.target.value)} autoComplete="new-password" minLength={6} required />
       </label>
       {message && <p className={message.ok ? 'form-info' : 'form-error'}>{message.text}</p>}
-      <button className="btn-primary" disabled={busy || !current || !next || !again}>
+      <button className="btn-primary" disabled={busy || !next || !again}>
         {busy ? 'Changing…' : 'Change password'}
       </button>
     </form>
