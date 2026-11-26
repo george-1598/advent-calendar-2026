@@ -18,6 +18,7 @@ import Hangman from './Hangman';
 import Cipher from './Cipher';
 import HotCold from './HotCold';
 import Truths from './Truths';
+import Suspects from './Suspects';
 // Chain renders other games, so it's loaded lazily to avoid a circular import at startup.
 const Chain = lazy(() => import('./Chain'));
 
@@ -38,6 +39,7 @@ const GAMES: Record<GameKind, ComponentType<GameProps>> = {
   cipher: Cipher,
   hotcold: HotCold,
   truths: Truths,
+  suspects: Suspects,
   chain: Chain,
 };
 

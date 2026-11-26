@@ -1,5 +1,6 @@
 import type { GameContent, GameKind } from '../games/types';
 import { toMorse } from '../games/morseCode';
+import { EXAMPLE_SUSPECTS } from '../games/suspectsLogic';
 
 /** A ready-made example quest. Loads into the editor; the gift is left for the creator to write. */
 export interface QuestTemplate {
@@ -116,6 +117,15 @@ export const TEMPLATES: QuestTemplate[] = [
       ],
     },
     answers: ['1,1'],
+  },
+  {
+    id: 'suspects',
+    label: '🔎 The four suspects: who did it?',
+    title: 'Who ate the cookies?',
+    kind: 'suspects',
+    content: { prompt: 'Someone ate the last gingerbread cookie 🍪 Four suspects, four statements…', suspects: EXAMPLE_SUSPECTS },
+    answers: ['2'],
+    hint: 'Try each suspect as the culprit and count the true statements',
   },
   {
     id: 'map',

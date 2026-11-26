@@ -145,7 +145,10 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
               <div className={progress?.gave_up ? 'day-reward is-revealed' : 'day-reward'}>
                 {progress?.gave_up && progress.answer && (
                   <p className="day-revealed">
-                    The answer was <strong>{progress.answer}</strong>
+                    The answer was{' '}
+                    <strong>
+                      {quest.kind === 'suspects' ? (quest.content.suspects?.[Number(progress.answer)]?.name ?? progress.answer) : progress.answer}
+                    </strong>
                   </p>
                 )}
                 <div className="day-reward-badge">

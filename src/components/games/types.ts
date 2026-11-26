@@ -1,7 +1,7 @@
 export type GameKind =
   | 'riddle' | 'wordle' | 'song' | 'map' | 'quiz' | 'timeline' | 'anagram' | 'treasure'
   | 'morse' | 'zoom' | 'memory' | 'emoji' | 'hangman' | 'cipher' | 'hotcold'
-  | 'truths' | 'chain';
+  | 'truths' | 'chain' | 'suspects';
 
 export const GAME_KINDS: { id: GameKind; label: string }[] = [
   { id: 'riddle', label: 'Riddle / question (type the answer)' },
@@ -20,6 +20,7 @@ export const GAME_KINDS: { id: GameKind; label: string }[] = [
   { id: 'cipher', label: 'Cipher wheel (decode the message)' },
   { id: 'hotcold', label: 'Hot & cold (find the spot in a photo)' },
   { id: 'truths', label: 'Two truths and a lie' },
+  { id: 'suspects', label: 'The four suspects (who did it?)' },
   { id: 'chain', label: 'Multi-step chain (several games in a row)' },
 ];
 
@@ -61,6 +62,8 @@ export interface GameContent {
   cipher?: string;
   /** truths: three statements per round */
   rounds?: { statements: string[] }[];
+  /** suspects: four people, each with one structured statement */
+  suspects?: { name: string; says: { type: 'did' | 'didnt' | 'lying' | 'truthful'; target: number } }[];
   /** chain: the games, in order */
   parts?: { kind: GameKind; content: GameContent }[];
 }

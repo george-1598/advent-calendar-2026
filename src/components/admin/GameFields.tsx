@@ -8,6 +8,7 @@ import { useMelodyPlayer } from '../games/Song';
 import { TILE_ATTRIBUTION, TILE_URL, pinIcon } from '../games/MapPin';
 import QuestImage, { uploadQuestImage } from '../games/QuestImage';
 import { useEditorCalendar } from './editorCalendar';
+import { CLAIMS, EXAMPLE_SUSPECTS, solve, statementText, type ClaimType, type Suspect } from '../games/suspectsLogic';
 import { MAIN_CALENDAR } from '../../lib/calendars';
 import { GAME_KINDS, MEMORY_DONE } from '../games/types';
 import { plain, toMorse } from '../games/morseCode';
@@ -47,6 +48,15 @@ export function cleanAnswers(kind: GameKind, answers: string[]): string[] {
 /** Returns an error message if the game isn't playable yet. */
 export function validateGame(kind: GameKind, content: GameContent, answers: string[]): string | null {
   switch (kind) {
+    case 'suspects': {
+      const sus = (content.suspects ?? []) as Suspect[];
+      if (sus.length !== 4) return 'Add the four suspects.';
+      if (sus.some((x) => !x.name.trim())) return 'Every suspect needs a name.';
+      if (new Set(sus.map((x) => x.name.trim().toLowerCase())).size !== 4) return 'Give the suspects different names.';
+      const fits = solve(sus);
+      if (fits.length !== 1) return fits.length ? 'More than one suspect fits — change a statement.' : 'No suspect fits — change a statement.';
+      return answers[0] === String(fits[0].culprit) ? null : 'The answer is out of date — change any field to refresh it.';
+    }
     case 'truths': {
       const rounds = content.rounds ?? [];
       if (!rounds.length) return 'Add at least one round.';
@@ -330,6 +340,13 @@ export default function GameFields({ day, kind, content, answers, onChange }: Pr
         <>
           {prompt('Intro (optional)', 'e.g. How well do you really know me? 😏', 2)}
           <TruthsFields content={content} answers={answers} onChange={onChange} />
+        </>
+      );
+    case 'suspects':
+      return (
+        <>
+          {prompt('Story (optional)', 'e.g. Someone ate the last gingerbread cookie 🍪…', 2)}
+          <SuspectsFields content={content} onChange={onChange} />
         </>
       );
     case 'chain':
@@ -812,6 +829,71 @@ function ChainFields({ day, content, answers, onChange }: { day: number; content
         + Add a step
       </button>
       <small>Players solve the steps in order; the gift appears after the last one. Progress is saved between visits.</small>
+    </div>
+  );
+}
+
+function SuspectsFields({ content, onChange }: { content: GameContent; onChange: Props['onChange'] }) {
+  const suspects = (content.suspects as Suspect[] | undefined) ?? EXAMPLE_SUSPECTS;
+  const commit = (next: Suspect[]) => {
+    const fits = solve(next);
+    // The answer (culprit's position) is worked out automatically when the puzzle has one solution.
+    onChange({ ...content, suspects: next }, fits.length === 1 ? [String(fits[0].culprit)] : []);
+  };
+  // A new suspects game starts from the example (Alice, Bob, Carol and David).
+  useEffect(() => {
+    if (!content.suspects) commit(EXAMPLE_SUSPECTS);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const set = (i: number, patch: Partial<Suspect> | { type?: ClaimType; target?: number }) =>
+    commit(
+      suspects.map((x, k) =>
+        k !== i ? x : 'name' in patch ? { ...x, name: (patch as Suspect).name } : { ...x, says: { ...x.says, ...(patch as { type?: ClaimType; target?: number }) } },
+      ),
+    );
+  const fits = solve(suspects);
+
+  return (
+    <div className="admin-suspects">
+      <small>Each suspect says one thing. Players know exactly one statement is true and must find the culprit.</small>
+      {suspects.map((x, i) => (
+        <fieldset key={i} className="admin-suspect">
+          <legend>Suspect {i + 1}</legend>
+          <input value={x.name} onChange={(e) => set(i, { name: e.target.value })} placeholder={EXAMPLE_SUSPECTS[i].name} aria-label={`Suspect ${i + 1} name`} />
+          <div className="admin-suspect-says">
+            <span>says:</span>
+            <select value={x.says.target} onChange={(e) => set(i, { target: Number(e.target.value) })} aria-label="About whom">
+              {suspects.map((y, k) => (
+                <option key={k} value={k}>
+                  {k === i ? 'I (myself)' : y.name || `Suspect ${k + 1}`}
+                </option>
+              ))}
+            </select>
+            <select value={x.says.type} onChange={(e) => set(i, { type: e.target.value as ClaimType })} aria-label="Statement">
+              {CLAIMS.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <q className="admin-suspect-quote">{statementText(suspects, i)}</q>
+        </fieldset>
+      ))}
+      {fits.length === 1 ? (
+        <p className="form-info">
+          ✓ Solvable: the culprit is <strong>{suspects[fits[0].culprit].name}</strong> (only {suspects[fits[0].truthTeller].name} tells the truth).
+        </p>
+      ) : (
+        <p className="form-error">
+          {fits.length === 0
+            ? 'No suspect fits the rule “exactly one statement is true”. Change a statement.'
+            : `${fits.map((f) => suspects[f.culprit].name).join(' and ')} would all fit. Change a statement so only one does.`}
+        </p>
+      )}
+      <button type="button" className="admin-link" onClick={() => commit(EXAMPLE_SUSPECTS)}>
+        Reset to the example
+      </button>
     </div>
   );
 }
