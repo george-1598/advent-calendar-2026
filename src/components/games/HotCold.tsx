@@ -14,7 +14,7 @@ const LEVELS: Record<string, { label: string; temp: number }> = {
 };
 
 /** Tap the photo to find the hidden spot; the server says how warm each tap is. */
-export default function HotCold({ day, content, solved }: GameProps) {
+export default function HotCold({ day, content, solved, step }: GameProps) {
   const [taps, setTaps] = useState<{ x: number; y: number; level: string }[]>([]);
   const [checking, setChecking] = useState(false);
   const { error, run } = useGameSubmit(day);
@@ -26,7 +26,7 @@ export default function HotCold({ day, content, solved }: GameProps) {
     const x = (e.clientX - r.left) / r.width;
     const y = (e.clientY - r.top) / r.height;
     setChecking(true);
-    const { data, error: err } = await supabase.rpc('hot_cold_probe', { p_day: day, p_x: x, p_y: y });
+    const { data, error: err } = await supabase.rpc('hot_cold_probe', { p_day: day, p_x: x, p_y: y, p_step: step ?? null });
     setChecking(false);
     if (err) return;
     const level = String(data);

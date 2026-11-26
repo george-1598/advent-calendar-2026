@@ -35,9 +35,9 @@ function Snowman({ lost }: { lost: number }) {
   );
 }
 
-export default function Hangman({ day, content, solved }: GameProps) {
+export default function Hangman({ day, content, solved, step }: GameProps) {
   const mask = (content.mask ?? '').toUpperCase();
-  const storeKey = `advent-hangman-${day}`;
+  const storeKey = `advent-hangman-${day}-${step ?? 0}`;
   const [state, setState] = useState<{ revealed: Record<number, string>; guessed: string[]; lost: number }>(() => {
     try {
       return JSON.parse(localStorage.getItem(storeKey) ?? '') as { revealed: Record<number, string>; guessed: string[]; lost: number };
@@ -69,7 +69,7 @@ export default function Hangman({ day, content, solved }: GameProps) {
   const guess = async (letter: string) => {
     if (solved || melted || checking || state.guessed.includes(letter)) return;
     setChecking(letter);
-    const { data, error: err } = await supabase.rpc('hangman_letter', { p_day: day, p_letter: letter });
+    const { data, error: err } = await supabase.rpc('hangman_letter', { p_day: day, p_letter: letter, p_step: step ?? null });
     setChecking(null);
     if (err) return;
     const positions = (data as number[]) ?? [];

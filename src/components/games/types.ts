@@ -1,6 +1,7 @@
 export type GameKind =
   | 'riddle' | 'wordle' | 'song' | 'map' | 'quiz' | 'timeline' | 'anagram' | 'treasure'
-  | 'morse' | 'zoom' | 'memory' | 'emoji' | 'hangman' | 'cipher' | 'hotcold';
+  | 'morse' | 'zoom' | 'memory' | 'emoji' | 'hangman' | 'cipher' | 'hotcold'
+  | 'truths' | 'chain';
 
 export const GAME_KINDS: { id: GameKind; label: string }[] = [
   { id: 'riddle', label: 'Riddle / question (type the answer)' },
@@ -18,6 +19,8 @@ export const GAME_KINDS: { id: GameKind; label: string }[] = [
   { id: 'hangman', label: 'Hangman (save the snowman)' },
   { id: 'cipher', label: 'Cipher wheel (decode the message)' },
   { id: 'hotcold', label: 'Hot & cold (find the spot in a photo)' },
+  { id: 'truths', label: 'Two truths and a lie' },
+  { id: 'chain', label: 'Multi-step chain (several games in a row)' },
 ];
 
 /** Answer stored for memory match (finishing the board is the solution). */
@@ -56,6 +59,10 @@ export interface GameContent {
   mask?: string;
   /** cipher: the encrypted message */
   cipher?: string;
+  /** truths: three statements per round */
+  rounds?: { statements: string[] }[];
+  /** chain: the games, in order */
+  parts?: { kind: GameKind; content: GameContent }[];
 }
 
 export interface GameProps {
@@ -64,4 +71,6 @@ export interface GameProps {
   solved: boolean;
   /** Treasure hunt: a code that arrived via QR link. */
   code?: string;
+  /** Set when this game is one step of a chain (0-based). */
+  step?: number;
 }

@@ -7,7 +7,7 @@ import { parseMelody } from '../games/melody';
 import { useMelodyPlayer } from '../games/Song';
 import { TILE_ATTRIBUTION, TILE_URL, pinIcon } from '../games/MapPin';
 import QuestImage, { uploadQuestImage } from '../games/QuestImage';
-import { MEMORY_DONE } from '../games/types';
+import { GAME_KINDS, MEMORY_DONE } from '../games/types';
 import { plain, toMorse } from '../games/morseCode';
 
 interface Props {
@@ -27,9 +27,39 @@ const shuffled = <T,>(xs: T[], differentFrom?: string) => {
   return [...xs].reverse();
 };
 
+const parseList = (a: string): string[] => {
+  try {
+    const v = JSON.parse(a);
+    return Array.isArray(v) ? v.map(String) : [];
+  } catch {
+    return [];
+  }
+};
+
+/** Tidy answers before saving (chains keep one JSON list per step). */
+export function cleanAnswers(kind: GameKind, answers: string[]): string[] {
+  if (kind === 'chain') return answers.map((a) => JSON.stringify(parseList(a).map((x) => x.trim()).filter(Boolean)));
+  return answers.map((a) => a.trim()).filter(Boolean);
+}
+
 /** Returns an error message if the game isn't playable yet. */
 export function validateGame(kind: GameKind, content: GameContent, answers: string[]): string | null {
   switch (kind) {
+    case 'truths': {
+      const rounds = content.rounds ?? [];
+      if (!rounds.length) return 'Add at least one round.';
+      if (rounds.some((r) => r.statements.length !== 3 || r.statements.some((x) => !x.trim()))) return 'Every round needs three statements.';
+      return null;
+    }
+    case 'chain': {
+      const parts = content.parts ?? [];
+      if (parts.length < 2) return 'A chain needs at least two steps.';
+      for (let i = 0; i < parts.length; i++) {
+        const problem = validateGame(parts[i].kind, parts[i].content ?? {}, cleanAnswers(parts[i].kind, parseList(answers[i] ?? '[]')));
+        if (problem) return `Step ${i + 1}: ${problem}`;
+      }
+      return null;
+    }
     case 'wordle':
       return /^[A-Za-z]{2,10}$/.test(answers[0] ?? '') ? null : 'The secret word must be 2–10 letters (no spaces or accents).';
     case 'song':
@@ -293,6 +323,20 @@ export default function GameFields({ day, kind, content, answers, onChange }: Pr
         </>
       );
     }
+    case 'truths':
+      return (
+        <>
+          {prompt('Intro (optional)', 'e.g. How well do you really know me? 😏', 2)}
+          <TruthsFields content={content} answers={answers} onChange={onChange} />
+        </>
+      );
+    case 'chain':
+      return (
+        <>
+          {prompt('Intro (optional)', 'e.g. Three challenges stand between you and today’s gift…', 2)}
+          <ChainFields day={day} content={content} answers={answers} onChange={onChange} />
+        </>
+      );
     case 'treasure':
       return (
         <>
@@ -653,6 +697,116 @@ function FocusPicker({
           />
         )}
       </div>
+    </div>
+  );
+}
+
+function TruthsFields({ content, answers, onChange }: { content: GameContent; answers: string[]; onChange: Props['onChange'] }) {
+  const rounds = content.rounds ?? [];
+  const [lies, setLies] = useState<number[]>(() => {
+    const saved = (answers[0] ?? '').split(',').map(Number);
+    return rounds.map((_, i) => (Number.isInteger(saved[i]) ? saved[i] : 0));
+  });
+  const commit = (next: { statements: string[] }[], l: number[]) => onChange({ ...content, rounds: next }, [l.slice(0, next.length).join(',')]);
+  const setStatement = (ri: number, si: number, v: string) =>
+    commit(rounds.map((r, k) => (k === ri ? { statements: r.statements.map((x, j) => (j === si ? v : x)) } : r)), lies);
+
+  return (
+    <div className="admin-quiz">
+      {rounds.map((r, ri) => (
+        <fieldset key={ri} className="admin-quiz-q">
+          <legend>Round {ri + 1}</legend>
+          {r.statements.map((st, si) => (
+            <div key={si} className="admin-quiz-opt">
+              <input
+                type="radio"
+                name={`lie-${ri}`}
+                checked={lies[ri] === si}
+                onChange={() => {
+                  const l = lies.map((x, k) => (k === ri ? si : x));
+                  setLies(l);
+                  commit(rounds, l);
+                }}
+                aria-label={`Statement ${si + 1} is the lie`}
+              />
+              <input value={st} onChange={(e) => setStatement(ri, si, e.target.value)} placeholder={si === 0 ? 'e.g. I once ate 12 pancakes in one go' : `Statement ${si + 1}`} />
+            </div>
+          ))}
+          <button
+            type="button"
+            className="admin-link admin-link--danger"
+            onClick={() => {
+              const l = lies.filter((_, k) => k !== ri);
+              setLies(l);
+              commit(rounds.filter((_, k) => k !== ri), l);
+            }}
+          >
+            Remove round
+          </button>
+        </fieldset>
+      ))}
+      <small>Mark the lie with the round button — and mix up where it sits from round to round.</small>
+      <button
+        type="button"
+        className="admin-link"
+        onClick={() => {
+          const l = [...lies, 0];
+          setLies(l);
+          commit([...rounds, { statements: ['', '', ''] }], l);
+        }}
+      >
+        + Add a round
+      </button>
+    </div>
+  );
+}
+
+function ChainFields({ day, content, answers, onChange }: { day: number; content: GameContent; answers: string[]; onChange: Props['onChange'] }) {
+  const parts = content.parts ?? [];
+  const lists = parts.map((_, i) => parseList(answers[i] ?? '[]'));
+  const commit = (nextParts: typeof parts, nextLists: string[][]) =>
+    onChange({ ...content, parts: nextParts }, nextLists.map((l) => JSON.stringify(l)));
+  const setPart = (i: number, part: (typeof parts)[number], list: string[]) =>
+    commit(parts.map((p, k) => (k === i ? part : p)), lists.map((l, k) => (k === i ? list : l)));
+  const move = (i: number, d: -1 | 1) => {
+    const j = i + d;
+    if (j < 0 || j >= parts.length) return;
+    const np = [...parts];
+    const nl = [...lists];
+    [np[i], np[j]] = [np[j], np[i]];
+    [nl[i], nl[j]] = [nl[j], nl[i]];
+    commit(np, nl);
+  };
+  const kinds = GAME_KINDS.filter((k) => k.id !== 'chain');
+
+  return (
+    <div className="admin-chain-steps">
+      {parts.map((part, i) => (
+        <fieldset key={i} className="admin-chain-step">
+          <legend>Step {i + 1}</legend>
+          <div className="admin-row admin-row--step">
+            <select value={part.kind} onChange={(e) => setPart(i, { kind: e.target.value as GameKind, content: {} }, [])}>
+              {kinds.map((k) => (
+                <option key={k.id} value={k.id}>
+                  {k.label}
+                </option>
+              ))}
+            </select>
+            <span className="admin-step-moves">
+              <button type="button" onClick={() => move(i, -1)} disabled={i === 0} aria-label="Move step up">↑</button>
+              <button type="button" onClick={() => move(i, 1)} disabled={i === parts.length - 1} aria-label="Move step down">↓</button>
+            </span>
+          </div>
+          <GameFields key={`${i}-${part.kind}`} day={day} kind={part.kind} content={part.content ?? {}} answers={lists[i]} onChange={(c, a) => setPart(i, { ...part, content: c }, a)} />
+          <button type="button" className="admin-link admin-link--danger" onClick={() => commit(parts.filter((_, k) => k !== i), lists.filter((_, k) => k !== i))}>
+            Remove step {i + 1}
+          </button>
+        </fieldset>
+      ))}
+      <button type="button" className="admin-link" onClick={() => commit([...parts, { kind: 'riddle', content: {} }], [...lists, []])}>
+        + Add a step
+      </button>
+      <small>She solves the steps in order; the gift appears after the last one. Her progress is saved between visits.</small>
     </div>
   );
 }

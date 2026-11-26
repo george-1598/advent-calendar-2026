@@ -1053,3 +1053,38 @@ h1, h2, p { margin: 0; }
 .admin-thumb { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px; }
 .admin-emoji { font-size: 28px !important; }
 .admin-morse { font-family: ui-monospace, monospace; font-size: 15px; word-break: break-word; color: #3f3a34; }
+
+/* Two truths and a lie */
+.truths-progress { display: flex; gap: 8px; justify-content: center; }
+.truths-dot { width: 12px; height: 12px; border-radius: 50%; background: #e2d9ca; }
+.truths-dot.is-picked { background: color-mix(in srgb, var(--day), #fff 45%); }
+.truths-dot.is-current { box-shadow: 0 0 0 3px color-mix(in srgb, var(--day), #fff 70%); background: var(--day); }
+.truths-list { display: grid; gap: 10px; animation: pop-in 0.3s var(--ease-out); }
+.truths-card { display: grid; grid-template-columns: auto 1fr; gap: 12px; align-items: center; padding: 14px; border-radius: 14px; border: 2px solid #e2d9ca; background: #fff; text-align: left; font-size: 16px; color: var(--ink); transition: transform 0.15s, border-color 0.15s; }
+.truths-card:active { transform: scale(0.98); }
+.truths-card.is-picked { border-color: var(--day); background: color-mix(in srgb, var(--day), #fff 90%); }
+.truths-mark { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; background: #f1ebe0; font-size: 18px; font-weight: 700; color: #9a948b; }
+.truths-card.is-picked .truths-mark { background: var(--day); color: #fff; }
+
+/* Chain */
+.chain-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+.chain-steps li { display: flex; align-items: center; gap: 6px; padding: 6px 10px 6px 6px; border-radius: 999px; background: #f1ebe0; color: #9a948b; font-size: 12.5px; font-weight: 600; }
+.chain-steps li.is-current { background: color-mix(in srgb, var(--day), #fff 85%); color: var(--day); }
+.chain-steps li.is-done { background: #e6f2ea; color: #2c5f40; }
+.chain-num { width: 22px; height: 22px; display: grid; place-items: center; border-radius: 50%; background: #fff; font-size: 12px; }
+.chain-steps li.is-current .chain-num { background: var(--day); color: #fff; }
+.chain-steps li.is-done .chain-num { background: #2e8b57; color: #fff; }
+.chain-stage { display: grid; gap: 10px; animation: pop-in 0.35s var(--ease-out); }
+.chain-kicker { justify-self: center; font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--day); }
+.chain-celebrate { display: grid; justify-items: center; gap: 4px; padding: 30px 10px; animation: pop-in 0.35s var(--ease-out); }
+.chain-celebrate span { font-size: 40px; }
+.chain-celebrate strong { font-size: 20px; color: var(--ink); }
+.chain-celebrate small { color: #8a847c; }
+.chain-done { text-align: center; font-weight: 600; color: #2c5f40 !important; }
+.admin-chain-steps { display: grid; gap: 12px; }
+.admin-chain-step { display: grid; gap: 10px; border: 2px solid #e2d9ca; border-radius: 12px; padding: 12px; margin: 0; background: #fffdf8; }
+.admin-chain-step legend { font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal); padding: 0 4px; }
+.admin-row--step { grid-template-columns: minmax(0, 1fr) auto; align-items: center; }
+.admin-step-moves { display: flex; gap: 4px; }
+.admin-step-moves button { width: 36px; height: 36px; border-radius: 8px; background: #f1ebe0; }
+.admin-step-moves button:disabled { opacity: 0.3; }

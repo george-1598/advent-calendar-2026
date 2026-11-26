@@ -6,9 +6,9 @@ const ROWS = 6;
 const KEYS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
 type Row = { word: string; pattern: string };
 
-export default function Wordle({ day, content, solved }: GameProps) {
+export default function Wordle({ day, content, solved, step }: GameProps) {
   const length = Math.max(2, Math.min(10, content.length ?? 5));
-  const storeKey = `advent-wordle-${day}`;
+  const storeKey = `advent-wordle-${day}-${step ?? 0}`;
   const [rows, setRows] = useState<Row[]>(() => {
     try {
       return JSON.parse(localStorage.getItem(storeKey) ?? '[]') as Row[];

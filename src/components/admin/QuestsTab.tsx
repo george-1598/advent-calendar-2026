@@ -4,7 +4,7 @@ import { formatCountdown } from '../../lib/time';
 import { useNow } from '../../lib/useNow';
 import { openDayPage } from '../../lib/route';
 import type { Player } from './PlayersTab';
-import GameFields, { validateGame } from './GameFields';
+import GameFields, { cleanAnswers, validateGame } from './GameFields';
 import { GAME_KINDS, type GameContent, type GameKind } from '../games/types';
 
 interface QuestFields {
@@ -158,7 +158,7 @@ function QuestEditor({
   const save = async (e: FormEvent) => {
     e.preventDefault();
     setMessage(null);
-    const answers = form.answers.map((a) => a.trim()).filter(Boolean);
+    const answers = cleanAnswers(kind, form.answers);
     if (gameIsCustom) {
       const problem = validateGame(kind, form.content, answers);
       if (problem) return setMessage({ ok: false, text: problem });

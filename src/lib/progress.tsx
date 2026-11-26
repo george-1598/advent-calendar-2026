@@ -16,6 +16,8 @@ export interface DayProgress {
   reward: string | null;
   hint: string | null;
   badge_letter: string | null;
+  /** Multi-step chains: the step the player is on (0-based). */
+  chain_step?: number;
 }
 
 export interface SubmitResult extends Omit<DayProgress, 'day'> {
@@ -27,6 +29,8 @@ export interface SubmitResult extends Omit<DayProgress, 'day'> {
   /** Quiz / timeline: how many were right. */
   right?: number;
   total?: number;
+  /** Chains: "correct" is about this step; "solved" is about the whole day. */
+  solved?: boolean;
 }
 
 interface ProgressState {
@@ -69,6 +73,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         reward: result.reward,
         hint: result.hint,
         badge_letter: result.badge_letter,
+        chain_step: result.chain_step,
       },
     }));
     return result;

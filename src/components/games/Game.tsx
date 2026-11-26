@@ -17,6 +17,9 @@ import Emoji from './Emoji';
 import Hangman from './Hangman';
 import Cipher from './Cipher';
 import HotCold from './HotCold';
+import Truths from './Truths';
+// Chain renders other games, so it's loaded lazily to avoid a circular import at startup.
+const Chain = lazy(() => import('./Chain'));
 
 const GAMES: Record<GameKind, ComponentType<GameProps>> = {
   riddle: Riddle,
@@ -34,6 +37,8 @@ const GAMES: Record<GameKind, ComponentType<GameProps>> = {
   hangman: Hangman,
   cipher: Cipher,
   hotcold: HotCold,
+  truths: Truths,
+  chain: Chain,
 };
 
 /** Renders the right game for a day's quest. */
