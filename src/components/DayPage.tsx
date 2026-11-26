@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties } from 'react';
 import Game from './games/Game';
 import type { GameContent } from './games/types';
 import { supabase } from '../lib/supabase';
@@ -10,6 +10,8 @@ import { dayColor, goHome, openAdmin, openDayPage, openMine } from '../lib/route
 import { StarIcon, LockIcon } from './icons';
 import { DayHints, ThanksBox } from './DayNotes';
 import DayHelp from './DayHelp';
+import { MemoryBox } from './Memories';
+import DoorOpening, { doorSeen } from './DoorOpening';
 
 interface Quest {
   day: number;
@@ -37,6 +39,14 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
   });
 
   const [quest, setQuest] = useState<Quest | null | undefined>(undefined);
+  // First visit to an unsolved day on this device: play the door animation (not with reduced motion).
+  const [door, setDoor] = useState(false);
+  useEffect(() => {
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    setDoor(Boolean(quest) && !solved && !reduced && !doorSeen(calendarId, day));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quest, calendarId, day]);
+  const closeDoor = useCallback(() => setDoor(false), []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -64,6 +74,7 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
 
   return (
     <article className="day-page" style={{ '--day': color } as CSSProperties}>
+      {door && <DoorOpening calendarId={calendarId} day={day} color={color} onDone={closeDoor} />}
       <header className="day-hero">
         <button className="day-back" onClick={goHome}>
           ← Back to the calendar
@@ -137,6 +148,7 @@ export default function DayPage({ day, code }: { day: number; code?: string }) {
                 <span className="day-reward-kicker">{progress?.gave_up ? 'Your surprise' : 'Solved! Your surprise'}</span>
                 <p className="day-reward-text">{progress?.reward}</p>
                 <ThanksBox day={day} />
+                <MemoryBox day={day} />
               </div>
             ) : (
               <DayHelp day={day} progress={progress} />

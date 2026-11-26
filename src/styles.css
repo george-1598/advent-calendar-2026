@@ -1308,3 +1308,67 @@ h1, h2, p { margin: 0; }
 .bg-progress { max-width: 520px; margin: 0 auto 14px; padding: 10px 14px; border-radius: 12px; background: #eef5ff; color: #1f3a5f; text-align: center; font-size: 14px; }
 .badge-game .game-row { flex-wrap: wrap; justify-content: center; }
 .finale-card { --day: #7a231c; }
+
+/* Install prompt */
+.install { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 12px; align-items: center; width: 100%; max-width: 640px; margin: 0 auto 14px; padding: 12px 14px; border-radius: 16px; background: #fffdf8; color: var(--ink); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12); }
+.install-icon { width: 46px; height: 46px; border-radius: 11px; }
+.install-text { display: grid; gap: 2px; min-width: 0; }
+.install-text strong { font-size: 14.5px; }
+.install-text small { color: #8a847c; font-size: 12.5px; }
+.install-steps { margin: 6px 0 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; color: #4a463f; }
+.install-share { display: inline-grid; place-items: center; width: 20px; height: 20px; border-radius: 5px; background: #e7eefc; color: #2f6fe0; font-size: 12px; }
+.install-actions { display: flex; align-items: center; gap: 4px; }
+.install-btn { padding: 8px 14px; border-radius: 10px; background: #7a231c; color: #fff; font-weight: 600; font-size: 13px; }
+.install-close { width: 30px; height: 30px; border-radius: 50%; color: #8a847c; }
+
+/* Door opening */
+.door-open { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: rgba(15, 6, 4, 0.72); perspective: 1200px; transition: opacity 0.35s; cursor: pointer; }
+.door-open.is-gone { opacity: 0; pointer-events: none; }
+.door-frame { position: relative; width: min(64vw, 280px); aspect-ratio: 3 / 4; border-radius: 16px 16px 6px 6px; background: radial-gradient(circle at 50% 40%, #fff6d6, #f2c14e 60%, #b8862b); box-shadow: 0 0 0 10px #4e1511, 0 30px 80px rgba(0, 0, 0, 0.6); display: grid; place-items: center; overflow: visible; }
+.door-num { font-size: clamp(64px, 22vw, 110px); font-weight: 800; color: #7a231c; opacity: 0; transform: scale(0.6); transition: opacity 0.5s 0.25s, transform 0.6s 0.25s cubic-bezier(0.2, 1.5, 0.4, 1); }
+.is-opening .door-num, .is-gone .door-num { opacity: 1; transform: scale(1); }
+.door-leaf { position: absolute; top: 0; bottom: 0; width: 50%; background: var(--door, #7a231c); background-image: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.06) 0 6px, transparent 6px 14px); box-shadow: inset 0 0 0 4px rgba(0, 0, 0, 0.12); transition: transform 1s cubic-bezier(0.5, 0, 0.2, 1); backface-visibility: hidden; z-index: 2; }
+.door-leaf--left { left: 0; transform-origin: left center; border-radius: 16px 0 0 6px; }
+.door-leaf--right { right: 0; transform-origin: right center; border-radius: 0 16px 6px 0; }
+.is-opening .door-leaf--left, .is-gone .door-leaf--left { transform: rotateY(-105deg); }
+.is-opening .door-leaf--right, .is-gone .door-leaf--right { transform: rotateY(105deg); }
+.door-knob { position: absolute; top: 52%; width: 12px; height: 12px; border-radius: 50%; background: #f2c14e; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4); }
+.door-leaf--left .door-knob { right: 12px; }
+.door-leaf--right .door-knob { left: 12px; }
+.door-snow { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.door-snow span { position: absolute; top: -10px; width: 7px; height: 7px; border-radius: 50%; background: #fff; opacity: 0.85; animation: confetti-fall linear infinite; --drift: 20px; --spin: 0deg; }
+
+/* Photo memories */
+.memory { display: grid; gap: 8px; justify-items: center; width: 100%; margin-top: 14px; padding: 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.92); color: var(--ink); }
+.memory-label { font-weight: 700; font-size: 14px; }
+.memory-caption-input, .memory-caption-edit input { width: 100%; padding: 10px 12px; border-radius: 10px; border: 2px solid #e2d9ca; font: inherit; font-size: 15px; }
+.memory-caption-edit { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; width: 100%; align-items: center; }
+.memory-upload { position: relative; overflow: hidden; display: inline-block; padding: 9px 16px; border-radius: 999px; border: 2px dashed #c9bfae; font-weight: 600; font-size: 14px; color: #7a231c; cursor: pointer; }
+.memory-upload--primary { border-style: solid; background: #7a231c; border-color: #7a231c; color: #fff; }
+.memory-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.memory-note { color: #8a847c; font-size: 12px; text-align: center; }
+.memory-photo { width: 100%; max-height: 360px; object-fit: cover; border-radius: 12px; display: block; }
+span.memory-photo { height: 200px; }
+.memory-caption { margin: 0; font-style: italic; color: #4a463f; }
+.memory-actions { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: center; }
+.memory-actions .memory-upload { padding: 6px 12px; font-size: 13px; }
+.feed-photo { display: block; width: 100%; max-width: 260px; max-height: 220px; object-fit: cover; border-radius: 10px; margin-top: 4px; }
+span.feed-photo { height: 140px; }
+
+/* Our December gallery */
+.memories-banner { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; align-items: center; width: 100%; max-width: 640px; margin: 0 auto 14px; padding: 14px 16px; border-radius: 16px; background: linear-gradient(120deg, #b5651d, #7a231c); color: #fff; text-align: left; box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18); }
+.memories-banner > span:first-child { font-size: 30px; }
+.memories-banner strong { display: block; font-size: 16px; }
+.memories-banner small { opacity: 0.85; }
+.gallery { position: fixed; inset: 0; z-index: 100; overflow-y: auto; background: #1b0f0c; color: #fff; padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px calc(env(safe-area-inset-bottom, 0px) + 24px); }
+.gallery-head { display: flex; justify-content: space-between; align-items: center; max-width: 760px; margin: 0 auto 12px; }
+.gallery-head h2 { margin: 0; font-family: 'Caveat', cursive; font-size: 34px; }
+.gallery-head button { width: 40px; height: 40px; border-radius: 50%; color: #fff; background: rgba(255, 255, 255, 0.12); font-size: 18px; }
+.gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; max-width: 760px; margin: 0 auto; }
+.gallery-item { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; padding: 0; }
+.gallery-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+.gallery-day { position: absolute; left: 6px; top: 6px; min-width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: rgba(122, 35, 28, 0.9); font-weight: 700; font-size: 13px; }
+.gallery-big { position: fixed; inset: 0; z-index: 101; display: grid; place-items: center; align-content: center; gap: 12px; padding: 20px; background: rgba(0, 0, 0, 0.92); }
+.gallery-big-photo { max-width: 100%; max-height: 78vh; border-radius: 12px; object-fit: contain; }
+.gallery-big p { margin: 0; text-align: center; font-size: 15px; }
+.install-steps { grid-column: 1 / -1; margin: 0; padding: 10px 12px 2px 32px; border-top: 1px solid #ece4d6; }

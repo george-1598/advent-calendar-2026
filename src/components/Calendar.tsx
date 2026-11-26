@@ -6,6 +6,8 @@ import CalendarSwitcher from './CalendarSwitcher';
 import { HintBanner } from './DayNotes';
 import { FinaleBanner } from './Finale';
 import { WrappedBanner } from './Wrapped';
+import { MemoriesBanner } from './Memories';
+import InstallPrompt from './InstallPrompt';
 import ClassicCalendar from './themes/ClassicCalendar';
 import PresentsCalendar from './themes/PresentsCalendar';
 import CarouselCalendar from './themes/CarouselCalendar';
@@ -28,6 +30,8 @@ export default function Calendar({ onNavigate }: { onNavigate: (view: View) => v
       <HintBanner />
       <FinaleBanner />
       <WrappedBanner />
+      <MemoriesBanner />
+      <InstallPrompt />
       {theme === 'classic' && <ClassicCalendar ctrl={ctrl} onNavigate={onNavigate} />}
       {theme === 'presents' && <PresentsCalendar ctrl={ctrl} />}
       {theme === 'carousel' && <CarouselCalendar ctrl={ctrl} />}

@@ -6,6 +6,7 @@ import CalendarSwitcher from './CalendarSwitcher';
 import { FinaleBanner, useLetters } from './Finale';
 import { BadgeGameProgress, useBadgeGame } from './BadgeGame';
 import { WrappedBanner } from './Wrapped';
+import { MemoriesBanner } from './Memories';
 import { useCalendars } from '../lib/calendars';
 
 export default function BadgesView() {
@@ -22,6 +23,7 @@ export default function BadgesView() {
       <FinaleBanner />
       {game && <BadgeGameProgress game={game} />}
       <WrappedBanner />
+      <MemoriesBanner />
       <p className="page-lead">
         {solvedCount} of {TOTAL_DAYS} collected{calendars.length > 1 ? ` in ${current.is_main ? current.title : current.is_owner ? 'your calendar' : `${current.owner_name ?? 'a friend'}’s calendar`}` : ''}. Solve a day’s quest to earn its badge.
       </p>

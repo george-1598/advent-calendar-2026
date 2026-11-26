@@ -2,9 +2,11 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useNow } from '../../lib/useNow';
 import { ago } from './PlayersTab';
+import QuestImage from '../games/QuestImage';
 
 export interface ActivityEvent {
-  type: 'solved' | 'joined' | 'hint' | 'thanks';
+  type: 'solved' | 'joined' | 'hint' | 'thanks' | 'memory';
+  path?: string;
   user_id: string;
   name: string;
   day?: number;
@@ -64,6 +66,8 @@ export default function ActivityFeed({ calendarId, activity, onChanged }: { cale
                 <span>{describe(e)}</span>
                 {e.type === 'thanks' && e.body && <q>{e.body}</q>}
                 {e.type === 'hint' && e.body && <q>{e.body}</q>}
+                {e.type === 'memory' && e.path && <QuestImage path={e.path} bucket="memories" className="feed-photo" alt={`Day ${e.day} photo`} />}
+                {e.type === 'memory' && e.body && <q>{e.body}</q>}
                 <small>{ago(e.at, now)}</small>
               </span>
             </li>
@@ -78,6 +82,7 @@ function icon(e: ActivityEvent): string {
   if (e.type === 'solved') return e.gave_up ? '🏳️' : '⭐';
   if (e.type === 'joined') return '👋';
   if (e.type === 'hint') return '💬';
+  if (e.type === 'memory') return '📸';
   return e.emoji || '💌';
 }
 
@@ -92,6 +97,8 @@ function describe(e: ActivityEvent): string {
       return `You sent ${e.name} a hint for day ${e.day}`;
     case 'thanks':
       return `${e.name} says thank you for day ${e.day}`;
+    case 'memory':
+      return `${e.name} added a photo of the day ${e.day} gift`;
   }
 }
 
